@@ -4,7 +4,7 @@ from universal_mcp.integrations import Integration
 
 class BrazeApp(APIApplication):
     def __init__(self, integration: Integration = None, **kwargs) -> None:
-        super().__init__(name='brazeapp', integration=integration, **kwargs)
+        super().__init__(name='braze', integration=integration, **kwargs)
         self.base_url = "https://rest.iad-01.braze.com"
 
     def query_hard_bounced_emails(self, start_date=None, end_date=None, limit=None, offset=None, email=None) -> Any:
