@@ -22,7 +22,7 @@ class BrazeApp(APIApplication):
             Any: API response data.
 
         Tags:
-            Email Lists & Addresses
+            Email Lists & Addresses, important
         """
         url = f"{self.base_url}/email/hard_bounces"
         query_params = {k: v for k, v in [('start_date', start_date), ('end_date', end_date), ('limit', limit), ('offset', offset), ('email', email)] if v is not None}
@@ -1289,7 +1289,7 @@ class BrazeApp(APIApplication):
             Any: API response data.
 
         Tags:
-            Messaging, Send Messages
+            Messaging, Send Messages, important
         """
         request_body = {
             'audience': audience,
@@ -1898,7 +1898,7 @@ class BrazeApp(APIApplication):
             Any: API response data.
 
         Tags:
-            User Data
+            User Data, important
         """
         request_body = {
             'aliases_to_identify': aliases_to_identify,
@@ -1964,7 +1964,7 @@ class BrazeApp(APIApplication):
             Any: API response data.
 
         Tags:
-            User Data
+            User Data, important
         """
         request_body = {
             'attributes': attributes,
