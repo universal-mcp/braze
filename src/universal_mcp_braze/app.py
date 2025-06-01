@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional, List
 from universal_mcp.applications import APIApplication
 from universal_mcp.integrations import Integration
 
@@ -7,43 +7,577 @@ class BrazeApp(APIApplication):
         super().__init__(name='braze', integration=integration, **kwargs)
         self.base_url = "https://rest.iad-01.braze.com"
 
-    def query_hard_bounced_emails(self, start_date=None, end_date=None, limit=None, offset=None, email=None) -> Any:
+    def update_email_template(self, email_template_id: Optional[str] = None, template_name: Optional[str] = None, subject: Optional[str] = None, body: Optional[str] = None, plaintext_body: Optional[str] = None, preheader: Optional[str] = None, tags: Optional[List[str]] = None) -> dict[str, Any]:
         """
-        Retrieves a list of permanently undelivered email addresses with optional date range, pagination, and email filtering.
+        Update Email Template
+
+        Args:
+            email_template_id (string): email_template_id Example: 'email_template_id'.
+            template_name (string): template_name Example: 'Weekly Newsletter'.
+            subject (string): subject Example: "This Week's Styles".
+            body (string): body Example: "Check out this week's digital lookbook to inspire your outfits. Take a look at https://www.braze.com/".
+            plaintext_body (string): plaintext_body Example: 'This is the updated text within my email body and here is a link to https://www.braze.com/.'.
+            preheader (string): preheader Example: 'We want you to have the best looks this Summer'.
+            tags (array): tags Example: ['Tag1', 'Tag2'].
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Templates > Email Templates
+        """
+        request_body_data = None
+        request_body_data = {
+            'email_template_id': email_template_id,
+            'template_name': template_name,
+            'subject': subject,
+            'body': body,
+            'plaintext_body': plaintext_body,
+            'preheader': preheader,
+            'tags': tags,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/templates/email/update"
+        query_params = {}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def track_user_activity(self, attributes: Optional[List[dict[str, Any]]] = None, events: Optional[List[dict[str, Any]]] = None, purchases: Optional[List[dict[str, Any]]] = None) -> dict[str, Any]:
+        """
+        Track Users
+
+        Args:
+            attributes (array): attributes Example: [{'external_id': 'rachel_feinberg', 'string_attribute': 'fruit', 'boolean_attribute_1': True, 'integer_attribute': 25, 'array_attribute': ['banana', 'apple']}].
+            events (array): events Example: [{'external_id': 'user_identifier', 'app_id': 'your_app_identifier', 'name': 'rented_movie', 'time': '2022-12-06T19:20:45+01:00', 'properties': {'release': {'studio': 'FilmStudio', 'year': '2022'}, 'cast': [{'name': 'Actor1'}, {'name': 'Actor2'}]}}, {'user_alias': {'alias_name': 'device123', 'alias_label': 'my_device_identifier'}, 'app_id': 'your_app_identifier', 'name': 'rented_movie', 'time': '2013-07-16T19:20:50+01:00'}].
+            purchases (array): purchases Example: [{'external_id': 'user_identifier', 'app_id': 'your_app_identifier', 'product_id': 'product_name', 'currency': 'USD', 'price': 12.12, 'quantity': 6, 'time': '2017-05-12T18:47:12Z', 'properties': {'color': 'red', 'monogram': 'ABC', 'checkout_duration': 180, 'size': 'Large', 'brand': 'Backpack Locker'}}].
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            User Data
+        """
+        request_body_data = None
+        request_body_data = {
+            'attributes': attributes,
+            'events': events,
+            'purchases': purchases,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/users/track"
+        query_params = {}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def delete_catalog_by_name(self, catalog_name: str) -> dict[str, Any]:
+        """
+        Delete Catalog
+
+        Args:
+            catalog_name (string): catalog_name
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Catalogs > Catalog Management > Synchronous
+        """
+        if catalog_name is None:
+            raise ValueError("Missing required parameter 'catalog_name'.")
+        url = f"{self.base_url}/catalogs/{catalog_name}"
+        query_params = {}
+        response = self._delete(url, params=query_params)
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def list_catalogs(self) -> dict[str, Any]:
+        """
+        List Catalogs
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Catalogs > Catalog Management > Synchronous
+        """
+        url = f"{self.base_url}/catalogs"
+        query_params = {}
+        response = self._get(url, params=query_params)
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def create_catalog(self, catalogs: Optional[List[dict[str, Any]]] = None) -> dict[str, Any]:
+        """
+        Create Catalog
+
+        Args:
+            catalogs (array): catalogs Example: [{'name': 'restaurants', 'description': 'My Restaurants', 'fields': [{'name': 'id', 'type': 'string'}]}].
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Catalogs > Catalog Management > Synchronous
+        """
+        request_body_data = None
+        request_body_data = {
+            'catalogs': catalogs,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/catalogs"
+        query_params = {}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def delete_catalog_item(self, catalog_name: str) -> dict[str, Any]:
+        """
+        Delete Multiple Catalog Items
+
+        Args:
+            catalog_name (string): catalog_name
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Catalogs > Catalog Items > Asynchronous
+        """
+        if catalog_name is None:
+            raise ValueError("Missing required parameter 'catalog_name'.")
+        url = f"{self.base_url}/catalogs/{catalog_name}/items"
+        query_params = {}
+        response = self._delete(url, params=query_params)
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def edit_catalog_item(self, catalog_name: str, items: Optional[List[dict[str, Any]]] = None) -> dict[str, Any]:
+        """
+        Edit Multiple Catalog Items
+
+        Args:
+            catalog_name (string): catalog_name
+            items (array): items Example: [{'id': 'restaurant1'}].
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Catalogs > Catalog Items > Asynchronous
+        """
+        if catalog_name is None:
+            raise ValueError("Missing required parameter 'catalog_name'.")
+        request_body_data = None
+        request_body_data = {
+            'items': items,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/catalogs/{catalog_name}/items"
+        query_params = {}
+        response = self._patch(url, data=request_body_data, params=query_params)
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def create_catalog_item(self, catalog_name: str, items: Optional[List[dict[str, Any]]] = None) -> dict[str, Any]:
+        """
+        Create Multiple Catalog Items
+
+        Args:
+            catalog_name (string): catalog_name
+            items (array): items Example: [{'id': 'restaurant1', 'Name': 'Restaurant1', 'City': 'New York', 'Cuisine': 'American', 'Rating': 5, 'Loyalty_Program': True, 'Created_At': '2022-11-01T09:03:19.967+00:00'}].
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Catalogs > Catalog Items > Asynchronous
+        """
+        if catalog_name is None:
+            raise ValueError("Missing required parameter 'catalog_name'.")
+        request_body_data = None
+        request_body_data = {
+            'items': items,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/catalogs/{catalog_name}/items"
+        query_params = {}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def update_catalog_items(self, catalog_name: str, items: Optional[List[dict[str, Any]]] = None) -> dict[str, Any]:
+        """
+        Update Catalog Item
+
+        Args:
+            catalog_name (string): catalog_name
+            items (array): items Example: [{'Name': 'Restaurant', 'Loyalty_Program': False, 'Location': {'Latitude': 33.6112, 'Longitude': -117.8711}, 'Open_Time': '2021-09-03T09:03:19.967+00:00'}].
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Catalogs > Catalog Items > Asynchronous
+        """
+        if catalog_name is None:
+            raise ValueError("Missing required parameter 'catalog_name'.")
+        request_body_data = None
+        request_body_data = {
+            'items': items,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/catalogs/{catalog_name}/items"
+        query_params = {}
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def list_catalog_items(self, catalog_name: str) -> dict[str, Any]:
+        """
+        List Multiple Catalog Item Details
+
+        Args:
+            catalog_name (string): catalog_name
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Catalogs > Catalog Items > Synchronous
+        """
+        if catalog_name is None:
+            raise ValueError("Missing required parameter 'catalog_name'.")
+        url = f"{self.base_url}/catalogs/{catalog_name}/items"
+        query_params = {}
+        response = self._get(url, params=query_params)
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def delete_catalog_item_by_id(self, catalog_name: str, item_id: str) -> dict[str, Any]:
+        """
+        Delete a Catalog Item
+
+        Args:
+            catalog_name (string): catalog_name
+            item_id (string): item_id
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Catalogs > Catalog Items > Synchronous
+        """
+        if catalog_name is None:
+            raise ValueError("Missing required parameter 'catalog_name'.")
+        if item_id is None:
+            raise ValueError("Missing required parameter 'item_id'.")
+        url = f"{self.base_url}/catalogs/{catalog_name}/items/{item_id}"
+        query_params = {}
+        response = self._delete(url, params=query_params)
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def get_item_detail(self, catalog_name: str, item_id: str) -> dict[str, Any]:
+        """
+        List Catalog Item Details
+
+        Args:
+            catalog_name (string): catalog_name
+            item_id (string): item_id
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Catalogs > Catalog Items > Synchronous
+        """
+        if catalog_name is None:
+            raise ValueError("Missing required parameter 'catalog_name'.")
+        if item_id is None:
+            raise ValueError("Missing required parameter 'item_id'.")
+        url = f"{self.base_url}/catalogs/{catalog_name}/items/{item_id}"
+        query_params = {}
+        response = self._get(url, params=query_params)
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def update_catalog_item_by_id(self, catalog_name: str, item_id: str, items: Optional[List[dict[str, Any]]] = None) -> dict[str, Any]:
+        """
+        Edit Catalog Items
+
+        Args:
+            catalog_name (string): catalog_name
+            item_id (string): item_id
+            items (array): items Example: [{'Name': 'Restaurant', 'Loyalty_Program': False, 'Open_Time': '2021-09-03T09:03:19.967+00:00'}].
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Catalogs > Catalog Items > Synchronous
+        """
+        if catalog_name is None:
+            raise ValueError("Missing required parameter 'catalog_name'.")
+        if item_id is None:
+            raise ValueError("Missing required parameter 'item_id'.")
+        request_body_data = None
+        request_body_data = {
+            'items': items,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/catalogs/{catalog_name}/items/{item_id}"
+        query_params = {}
+        response = self._patch(url, data=request_body_data, params=query_params)
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def add_catalog_item_by_id(self, catalog_name: str, item_id: str, items: Optional[List[dict[str, Any]]] = None) -> dict[str, Any]:
+        """
+        Create Catalog Item
+
+        Args:
+            catalog_name (string): catalog_name
+            item_id (string): item_id
+            items (array): items Example: [{'Name': 'Restaurant1', 'City': 'New York', 'Cuisine': 'American', 'Rating': 5, 'Loyalty_Program': True, 'Created_At': '2022-11-01T09:03:19.967+00:00'}].
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Catalogs > Catalog Items > Synchronous
+        """
+        if catalog_name is None:
+            raise ValueError("Missing required parameter 'catalog_name'.")
+        if item_id is None:
+            raise ValueError("Missing required parameter 'item_id'.")
+        request_body_data = None
+        request_body_data = {
+            'items': items,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/catalogs/{catalog_name}/items/{item_id}"
+        query_params = {}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def update_catalog_item(self, catalog_name: str, item_id: str, items: Optional[List[dict[str, Any]]] = None) -> dict[str, Any]:
+        """
+        Update Catalog Item
+
+        Args:
+            catalog_name (string): catalog_name
+            item_id (string): item_id
+            items (array): items Example: [{'Name': 'Restaurant', 'Loyalty_Program': False, 'Location': {'Latitude': 33.6112, 'Longitude': -117.8711}, 'Open_Time': '2021-09-03T09:03:19.967+00:00'}].
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Catalogs > Catalog Items > Synchronous
+        """
+        if catalog_name is None:
+            raise ValueError("Missing required parameter 'catalog_name'.")
+        if item_id is None:
+            raise ValueError("Missing required parameter 'item_id'.")
+        request_body_data = None
+        request_body_data = {
+            'items': items,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/catalogs/{catalog_name}/items/{item_id}"
+        query_params = {}
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def list_hard_bounces(self, start_date: Optional[str] = None, end_date: Optional[str] = None, limit: Optional[int] = None, offset: Optional[int] = None, email: Optional[str] = None) -> dict[str, Any]:
+        """
+        Query Hard Bounced Emails
 
         Args:
             start_date (string): (Optional*) String in YYYY-MM-DD format Start date of the range to retrieve hard bounces, must be earlier than `end_date`. This is treated as midnight in UTC time by the API. *You must provide either an `email` or a `start_date`, and an `end_date`. Example: '2019-01-01'.
             end_date (string): (Optional*) String in YYYY-MM-DD format String in YYYY-MM-DD format. End date of the range to retrieve hard bounces. This is treated as midnight in UTC time by the API. *You must provide either an `email` or a `start_date`, and an `end_date`. Example: '2019-02-01'.
-            limit (string): (Optional) Integer Optional field to limit the number of results returned. Defaults to 100, maximum is 500. Example: '100'.
-            offset (string): (Optional) Integer Optional beginning point in the list to retrieve from. Example: '1'.
+            limit (integer): (Optional) Integer Optional field to limit the number of results returned. Defaults to 100, maximum is 500. Example: '100'.
+            offset (integer): (Optional) Integer Optional beginning point in the list to retrieve from. Example: '1'.
             email (string): (Optional*) String If provided, we will return whether or not the user has hard bounced. *You must provide either an `email` or a `start_date`, and an `end_date`. Example: 'example@braze.com'.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Email Lists & Addresses, important
+            Email Lists & Addresses
         """
         url = f"{self.base_url}/email/hard_bounces"
         query_params = {k: v for k, v in [('start_date', start_date), ('end_date', end_date), ('limit', limit), ('offset', offset), ('email', email)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def query_list_of_unsubscribed_email_addresses(self, start_date=None, end_date=None, limit=None, offset=None, sort_direction=None, email=None) -> Any:
+    def list_unsubscribes(self, start_date: Optional[str] = None, end_date: Optional[str] = None, limit: Optional[int] = None, offset: Optional[int] = None, sort_direction: Optional[str] = None, email: Optional[str] = None) -> dict[str, Any]:
         """
-        Retrieves a list of unsubscribed email addresses within a specified date range, optionally filtered by email, with pagination and sorting support.
+        Query List of Unsubscribed Email Addresses
 
         Args:
             start_date (string): (Optional*) String in YYYY-MM-DD format Start date of the range to retrieve unsubscribes, must be earlier than end_date. This is treated as midnight in UTC time by the API. Example: '2020-01-01'.
             end_date (string): (Optional*) String in YYYY-MM-DD format End date of the range to retrieve unsubscribes. This is treated as midnight in UTC time by the API. Example: '2020-02-01'.
-            limit (string): (Optional) Integer Optional field to limit the number of results returned. Limit must be greater than 1. Defaults to 100, maximum is 500. Example: '1'.
-            offset (string): (Optional) Integer Optional beginning point in the list to retrieve from Example: '1'.
+            limit (integer): (Optional) Integer Optional field to limit the number of results returned. Limit must be greater than 1. Defaults to 100, maximum is 500. Example: '1'.
+            offset (integer): (Optional) Integer Optional beginning point in the list to retrieve from. Example: '1'.
             sort_direction (string): (Optional) String Pass in the value `asc` to sort unsubscribes from oldest to newest. Pass in `desc` to sort from newest to oldest. If sort_direction is not included, the default order is newest to oldest. Example: 'desc'.
-            email (string): (Optional*) String If provided, we will return whether or not the user has unsubscribed Example: 'example@braze.com'.
+            email (string): (Optional*) String If provided, we will return whether or not the user has unsubscribed. Example: 'example@braze.com'.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Email Lists & Addresses
@@ -52,1989 +586,2804 @@ class BrazeApp(APIApplication):
         query_params = {k: v for k, v in [('start_date', start_date), ('end_date', end_date), ('limit', limit), ('offset', offset), ('sort_direction', sort_direction), ('email', email)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def change_email_subscription_status(self, email=None, subscription_state=None) -> Any:
+    def post_email_status(self, email: Optional[str] = None, subscription_state: Optional[str] = None) -> dict[str, Any]:
         """
-        Posts a request to retrieve the current delivery status of a specified email.
+        Change Email Subscription Status
 
         Args:
             email (string): email Example: 'example@braze.com'.
-            subscription_state (string): subscription_state
-                Example:
-                ```json
-                {
-                  "email": "example@braze.com",
-                  "subscription_state": "subscribed"
-                }
-                ```
+            subscription_state (string): subscription_state Example: 'subscribed'.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Email Lists & Addresses
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'email': email,
             'subscription_state': subscription_state,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/email/status"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def remove_hard_bounced_emails(self, email=None) -> Any:
+    def remove_bounced_email(self, email: Optional[str] = None) -> dict[str, Any]:
         """
-        Removes email addresses from a bounce list using the Braze API.
+        Remove Hard Bounced Emails
 
         Args:
-            email (string): email
-                Example:
-                ```json
-                {
-                  "email": "example@braze.com"
-                }
-                ```
+            email (string): email Example: 'example@braze.com'.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Email Lists & Addresses
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'email': email,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/email/bounce/remove"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def remove_email_addresses_from_spam_list(self, email=None) -> Any:
+    def remove_email_spam(self, email: Optional[str] = None) -> dict[str, Any]:
         """
-        Removes specified email addresses from both the Braze spam list and the associated email provider's spam list using a POST request.
+        Remove Email Addresses from Spam List
 
         Args:
-            email (string): email
-                Example:
-                ```json
-                {
-                  "email": "example@braze.com"
-                }
-                ```
+            email (string): email Example: 'example@braze.com'.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Email Lists & Addresses
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'email': email,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/email/spam/remove"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def blacklist_email_addresses(self, email=None) -> Any:
+    def add_email_to_blocklist(self, email: Optional[List[str]] = None) -> dict[str, Any]:
         """
-        Unsubscribes a user from email and marks them as hard bounced.
+        Blocklist Email Addresses
 
         Args:
-            email (array): email
-                Example:
-                ```json
-                {
-                  "email": [
-                    "blacklist_email1",
-                    "blacklist_email2"
-                  ]
-                }
-                ```
+            email (array): email Example: ['blocklist_email1', 'blocklist_email2'].
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             Email Lists & Addresses
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'email': email,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
-        url = f"{self.base_url}/email/blacklist"
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/email/blocklist"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def campaign_analytics(self, campaign_id=None, length=None, ending_at=None) -> Any:
+    def add_to_blacklist(self, email: Optional[List[str]] = None) -> dict[str, Any]:
         """
-        Retrieves a data series for a campaign, providing analytics such as message send, open, and click metrics over a specified time period defined by the campaign ID, series length, and ending date.
+        Blacklist Email Addresses
 
         Args:
-            campaign_id (string): (Required) String Campaign API identifier Example: '{{campaign_identifier}}'.
-            length (string): (Required) Integer Max number of days before ending_at to include in the returned series - must be between 1 and 100 inclusive Example: '7'.
-            ending_at (string): (Optional) DateTime (ISO 8601 string) Date on which the data series should end - defaults to time of the request Example: '2020-06-28T23:59:59-5:00'.
+            email (array): email Example: ['blacklist_email1', 'blacklist_email2'].
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Export, Campaign
+            Email Lists & Addresses
+        """
+        request_body_data = None
+        request_body_data = {
+            'email': email,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/email/blacklist"
+        query_params = {}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def get_campaign_data_series(self, campaign_id: Optional[str] = None, length: Optional[int] = None, ending_at: Optional[str] = None) -> dict[str, Any]:
+        """
+        Export Campaign Analytics
+
+        Args:
+            campaign_id (string): (Required) String See [campaign API identifier]( The `campaign_id` for API campaigns can be found at **Settings > Setup and Testing > API Keys** and the **Campaign Details** page within your dashboard, or you can use the [List campaigns endpoint]( Example: '{{campaign_identifier}}'.
+            length (integer): (Required) Integer Max number of days before `ending_at` to include in the returned series. Must be between 1 and 100 (inclusive). Example: '7'.
+            ending_at (string): (Optional) Datetime ([ISO 8601]( string) Date on which the data series should end. Defaults to time of the request. Example: '2020-06-28T23:59:59-5:00'.
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Export > Campaign
         """
         url = f"{self.base_url}/campaigns/data_series"
         query_params = {k: v for k, v in [('campaign_id', campaign_id), ('length', length), ('ending_at', ending_at)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def campaign_details(self, campaign_id=None) -> Any:
+    def get_campaign_details(self, campaign_id: Optional[str] = None) -> dict[str, Any]:
         """
-        Retrieves detailed information for a specified campaign using its unique identifier (campaign_id).
+        Export Campaign Details
 
         Args:
-            campaign_id (string): (Required) String Campaign API identifier Example: '{{campaign_identifier}}'.
+            campaign_id (string): (Required) String See [campaign API identifier]( The `campaign_id` for API campaigns can be found on the **Settings > Setup and Testing > API Keys** and the campaign details page within your dashboard, or you can use the [Campaign List Endpoint]( Example: '{{campaign_identifier}}'.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Export, Campaign
+            Export > Campaign
         """
         url = f"{self.base_url}/campaigns/details"
         query_params = {k: v for k, v in [('campaign_id', campaign_id)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def campaign_list(self, page=None, include_archived=None, sort_direction=None, last_edit_time_gt=None) -> Any:
+    def list_campaigns(self, page: Optional[int] = None, include_archived: Optional[bool] = None, sort_direction: Optional[str] = None, last_edit_time_gt: Optional[str] = None) -> dict[str, Any]:
         """
-        Retrieves a paginated list of campaigns with optional filtering parameters for archived status, sorting, and edit time range.
+        Export Campaign List
 
         Args:
-            page (string): (Optional) Integer The page of campaigns to return, defaults to 0 (returns the first set of up to 100) Example: '0'.
-            include_archived (string): (Optional) Boolean Whether or not to include archived campaigns, defaults to false Example: 'false'.
-            sort_direction (string): (Optional) String Pass in the value `desc` to sort by creation time from newest to oldest. Pass in `asc` to sort from oldest to newest. If sort_direction is not included, the default order is oldest to newest. Example: 'desc'.
-            last_edit_time_gt (string): (Optional) DateTime (ISO 8601 string) Filters the results and only returns campaigns that were edited greater than the time provided till now. Example: '2020-06-28T23:59:59-5:00'.
+            page (integer): (Optional) Integer The page of campaigns to return, defaults to 0 (returns the first set of up to 100).
+            include_archived (boolean): (Optional) Boolean Whether or not to include archived campaigns, defaults to false.
+            sort_direction (string): (Optional) String - Sort creation time from newest to oldest: pass in the value `desc`.
+        - Sort creation time from oldest to newest: pass in the value `asc`. If `sort_direction` is not included, the default order is oldest to newest. Example: 'desc'.
+            last_edit_time_gt (string): (Optional) Datetime ([ISO 8601]( string) Filters the results and only returns campaigns that were edited greater than the time provided till now. Format is `yyyy-MM-DDTHH:mm:ss`. Example: '2020-06-28T23:59:59-5:00'.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Export, Campaign
+            Export > Campaign
         """
         url = f"{self.base_url}/campaigns/list"
         query_params = {k: v for k, v in [('page', page), ('include_archived', include_archived), ('sort_direction', sort_direction), ('last_edit.time[gt]', last_edit_time_gt)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def send_analytics(self, campaign_id=None, send_id=None, length=None, ending_at=None) -> Any:
+    def get_send_data_series(self, campaign_id: Optional[str] = None, send_id: Optional[str] = None, length: Optional[int] = None, ending_at: Optional[str] = None) -> dict[str, Any]:
         """
-        Retrieves a data series for campaign sends with optional filtering by campaign ID, send ID, length, and ending timestamp.
+        Export Send Analytics
 
         Args:
-            campaign_id (string): (Required) String Campaign API identifier. Example: '{{campaign_identifier}}'.
-            send_id (string): (Required) String Send API identifier. Example: '{{send_identifier}}'.
-            length (string): (Required) Integer Maximum number of days before `ending_at` to include in the returned series. Must be between 1 and 100 inclusive. Example: '30'.
-            ending_at (string): (Optional) Datetime ISO 8601 string Date on which the data series should end. Defaults to time of the request. Example: '2014-12-10T23:59:59-05:00'.
+            campaign_id (string): (Required) String See [Campaign API identifier]( Example: '{{campaign_identifier}}'.
+            send_id (string): (Required) String See [Send API identifier]( Example: '{{send_identifier}}'.
+            length (integer): (Required) Integer Max number of days before `ending_at` to include in the returned series. Must be between 1 and 100 (inclusive). Example: '30'.
+            ending_at (string): (Optional) Datetime ([ISO 8601]( string) Date on which the data series should end. Defaults to time of the request. Example: '2014-12-10T23:59:59-05:00'.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Export, Campaign
+            Export > Campaign
         """
         url = f"{self.base_url}/sends/data_series"
         query_params = {k: v for k, v in [('campaign_id', campaign_id), ('send_id', send_id), ('length', length), ('ending_at', ending_at)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def canvas_data_series_analytics(self, canvas_id=None, ending_at=None, starting_at=None, length=None, include_variant_breakdown=None, include_step_breakdown=None, include_deleted_step_data=None) -> Any:
+    def get_canvas_data_series(self, canvas_id: Optional[str] = None, ending_at: Optional[str] = None, starting_at: Optional[str] = None, length: Optional[int] = None, include_variant_breakdown: Optional[bool] = None, include_step_breakdown: Optional[bool] = None, include_deleted_step_data: Optional[bool] = None) -> dict[str, Any]:
         """
-        Exports time series data for a Canvas, allowing users to retrieve analytics based on parameters such as canvas ID, time range, and optional breakdowns by variant, step, or deleted step data.
+        Export Canvas Data Series Analytics
 
         Args:
-            canvas_id (string): (Required) String Canvas API Identifier Example: '{{canvas_id}}'.
-            ending_at (string): (Required) DateTime (ISO 8601 string) Date on which the data export should end - defaults to time of the request Example: '2018-05-30T23:59:59-5:00'.
-            starting_at (string): (Optional) DateTime (ISO 8601 string) Date on which the data export should begin (either length or starting_at are required) Example: '2018-05-28T23:59:59-5:00'.
-            length (string): (Optional) DateTime (ISO 8601 string) Max number of days before ending_at to include in the returned series - must be between 1 and 14 inclusive (either length or starting_at required) Example: '10'.
-            include_variant_breakdown (string): (Optional) Boolean Whether or not to include variant stats (defaults to false) Example: 'true'.
-            include_step_breakdown (string): (Optional) Boolean Whether or not to include step stats (defaults to false) Example: 'true'.
-            include_deleted_step_data (string): (Optional) Boolean Whether or not to include step stats for deleted steps (defaults to false) Example: 'true'.
+            canvas_id (string): (Required) String See [Canvas API Identifier]( Example: '{{canvas_id}}'.
+            ending_at (string): (Required) Datetime ([ISO 8601]( string) Date on which the data export should end. Defaults to time of the request. Example: '2018-05-30T23:59:59-5:00'.
+            starting_at (string): (Optional*) Datetime ([ISO 8601]( string) Date on which the data export should begin. *Either `length` or `starting_at` is required. Example: '2018-05-28T23:59:59-5:00'.
+            length (integer): (Optional*) String Maximum number of days before `ending_at` to include in the returned series. Must be between 1 and 14 (inclusive). *Either `length` or `starting_at` is required. Example: '10'.
+            include_variant_breakdown (boolean): (Optional) Boolean Whether or not to include variant stats (defaults to false). Example: 'True'.
+            include_step_breakdown (boolean): (Optional) Boolean Whether or not to include step stats (defaults to false). Example: 'True'.
+            include_deleted_step_data (boolean): (Optional) Boolean Whether or not to include step stats for deleted steps (defaults to false). Example: 'True'.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Export, Canvas
+            Export > Canvas
         """
         url = f"{self.base_url}/canvas/data_series"
         query_params = {k: v for k, v in [('canvas_id', canvas_id), ('ending_at', ending_at), ('starting_at', starting_at), ('length', length), ('include_variant_breakdown', include_variant_breakdown), ('include_step_breakdown', include_step_breakdown), ('include_deleted_step_data', include_deleted_step_data)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def canvas_data_analytics_summary(self, canvas_id=None, ending_at=None, starting_at=None, length=None, include_variant_breakdown=None, include_step_breakdown=None, include_deleted_step_data=None) -> Any:
+    def fetch_canvas_data_summary(self, canvas_id: Optional[str] = None, ending_at: Optional[str] = None, starting_at: Optional[str] = None, length: Optional[int] = None, include_variant_breakdown: Optional[bool] = None, include_step_breakdown: Optional[bool] = None, include_deleted_step_data: Optional[bool] = None) -> dict[str, Any]:
         """
-        Retrieves summarized analytics data for a specific Canvas, including time-based metrics and optional breakdowns by variants or steps, based on parameters like time range and data granularity.
+        Export Canvas Data Analytics Summary
 
         Args:
-            canvas_id (string): (Required) String Canvas API identifier Example: '{{canvas_id}}'.
-            ending_at (string): (Required) DateTime (ISO 8601 string) Date on which the data export should end - defaults to time of the request Example: '2018-05-30T23:59:59-5:00'.
-            starting_at (string): (Optional) DateTime (ISO 8601 string) Date on which the data export should begin (either length or starting_at required) Example: '2018-05-28T23:59:59-5:00'.
-            length (string): (Optional) Integer Max number of days before ending_at to include in the returned series - must be between 1 and 14 inclusive (either length or starting_at required) Example: '5'.
-            include_variant_breakdown (string): (Optional) Boolean Whether or not to include variant stats (defaults to false) Example: 'true'.
-            include_step_breakdown (string): (Optional) Boolean Whether or not to include step stats (defaults to false) Example: 'true'.
-            include_deleted_step_data (string): (Optional) Boolean Whether or not to include step stats for deleted steps (defaults to false) Example: 'true'.
+            canvas_id (string): (Required) String See [Canvas API identifier]( Example: '{{canvas_id}}'.
+            ending_at (string): (Required) Datetime ([ISO 8601]( string)
+        Date on which the data export should end. Defaults to time of the request Example: '2018-05-30T23:59:59-5:00'.
+            starting_at (string): (Optional*) Datetime ([ISO 8601]( string) Date on which the data export should begin. *Either `length` or `starting_at` is required. Example: '2018-05-28T23:59:59-5:00'.
+            length (integer): (Optional*) Integer Max number of days before `ending_at` to include in the returned series. Must be between 1 and 14 (inclusive). *Either `length` or `starting_at` is required. Example: '5'.
+            include_variant_breakdown (boolean): (Optional) Boolean Whether or not to include variant stats (defaults to false). Example: 'True'.
+            include_step_breakdown (boolean): (Optional) Boolean Whether or not to include step stats (defaults to false). Example: 'True'.
+            include_deleted_step_data (boolean): (Optional) Boolean Whether or not to include step stats for deleted steps (defaults to false). Example: 'True'.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Export, Canvas
+            Export > Canvas
         """
         url = f"{self.base_url}/canvas/data_summary"
         query_params = {k: v for k, v in [('canvas_id', canvas_id), ('ending_at', ending_at), ('starting_at', starting_at), ('length', length), ('include_variant_breakdown', include_variant_breakdown), ('include_step_breakdown', include_step_breakdown), ('include_deleted_step_data', include_deleted_step_data)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def canvas_details(self, canvas_id=None) -> Any:
+    def get_canvas_details(self, canvas_id: Optional[str] = None) -> dict[str, Any]:
         """
-        Retrieves and returns detailed information about a Canvas resource identified by the provided `canvas_id`.
+        Export Canvas Details
 
         Args:
-            canvas_id (string): (Required) String Canvas API Identifier Example: '{{canvas_identifier}}'.
+            canvas_id (string): (Required) String See [Canvas API Identifier]( Example: '{{canvas_identifier}}'.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Export, Canvas
+            Export > Canvas
         """
         url = f"{self.base_url}/canvas/details"
         query_params = {k: v for k, v in [('canvas_id', canvas_id)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def canvas_list(self, page=None, include_archived=None, sort_direction=None, last_edit_time_gt=None) -> Any:
+    def list_canvas(self, page: Optional[int] = None, include_archived: Optional[bool] = None, sort_direction: Optional[str] = None, last_edit_time_gt: Optional[str] = None) -> dict[str, Any]:
         """
-        Retrieves a paginated list of Canvases including names, API identifiers, and associated tags, sorted in groups and filterable by parameters like archival status and edit time.
+        Export Canvas List
 
         Args:
-            page (string): (Optional) Integer The page of Canvases to return, defaults to `0` (returns the first set of up to 100) Example: '1'.
-            include_archived (string): (Optional) Boolean Whether or not to include archived Canvases, defaults to `false`. Example: 'false'.
-            sort_direction (string): (Optional) String Pass in the value `desc` to sort by creation time from newest to oldest. Pass in `asc` to sort from oldest to newest. If sort_direction is not included, the default order is oldest to newest. Example: 'desc'.
-            last_edit_time_gt (string): (Optional) DateTime (ISO 8601 string) Filters the results and only returns Canvases that were edited greater than the time provided till now. Example: '2020-06-28T23:59:59-5:00'.
+            page (integer): (Optional) Integer The page of Canvases to return, defaults to `0` (returns the first set of up to 100). Example: '1'.
+            include_archived (boolean): (Optional) Boolean Whether or not to include archived Canvases, defaults to `false`.
+            sort_direction (string): (Optional) String - Sort creation time from newest to oldest: pass in the value `desc`.
+        - Sort creation time from oldest to newest: pass in the value `asc`. If `sort_direction` is not included, the default order is oldest to newest. Example: 'desc'.
+            last_edit_time_gt (string): (Optional) Datetime ([ISO 8601]( string) Filters the results and only returns Canvases that were edited greater than the time provided till now. Format is `yyyy-MM-DDTHH:mm:ss`. Example: '2020-06-28T23:59:59-5:00'.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Export, Canvas
+            Export > Canvas
         """
         url = f"{self.base_url}/canvas/list"
         query_params = {k: v for k, v in [('page', page), ('include_archived', include_archived), ('sort_direction', sort_direction), ('last_edit.time[gt]', last_edit_time_gt)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def custom_events_list(self, page=None) -> Any:
+    def list_events(self, page: Optional[int] = None) -> dict[str, Any]:
         """
-        Retrieves a list of events using the "GET" method at the "/events/list" endpoint, optionally paginating results using the "page" query parameter.
+        Export Custom Events List
 
         Args:
-            page (string): (Optional) Integer The page of event names to return, defaults to 0 (returns the first set of up to 250) Example: '3'.
+            page (integer): (Optional) Integer The page of event names to return, defaults to 0 (returns the first set of up to 250). Example: '3'.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Export, Custom Events
+            Export > Custom Events
         """
         url = f"{self.base_url}/events/list"
         query_params = {k: v for k, v in [('page', page)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def custom_events_analytics(self, event=None, length=None, unit=None, ending_at=None, app_id=None, segment_id=None) -> Any:
+    def fetch_event_series_data(self, event: Optional[str] = None, length: Optional[int] = None, unit: Optional[str] = None, ending_at: Optional[str] = None, app_id: Optional[str] = None, segment_id: Optional[str] = None) -> dict[str, Any]:
         """
-        Retrieves a data series for an event using the specified parameters and returns the relevant data.
+        Export Custom Events Analytics
 
         Args:
-            event (string): (Required) String The name of the custom event for which to return analytics Example: 'event_name'.
-            length (string): (Required) Integer Max number of units (days or hours) before ending_at to include in the returned series - must be between 1 and 100 inclusive Example: '24'.
-            unit (string): (Optional) String Unit of time between data points - can be "day" or "hour" (defaults to "day") Example: 'hour'.
-            ending_at (string): (Optional) DateTime (ISO 8601 string) Point in time when the data series should end - defaults to time of the request Example: '2014-12-10T23:59:59-05:00'.
-            app_id (string): (Optional) String App API identifier retrieved from the Developer Console to limit analytics to a specific app Example: '{{app_identifier}}'.
-            segment_id (string): (Optional) String Segment API identifier indicating the analytics enabled segment for which event analytics should be returned Example: '{{segment_identifier}}'.
+            event (string): (Required) String The name of the custom event for which to return analytics. Example: 'event_name'.
+            length (integer): (Required) Integer Maximum number of units (days or hours) before `ending_at` to include in the returned series. Must be between 1 and 100 (inclusive). Example: '24'.
+            unit (string): (Optional) String Unit of time between data points - can be `day` or `hour`, defaults to `day`. Example: 'hour'.
+            ending_at (string): (Optional) Datetime ([ISO 8601]( string) Date on which the data series should end. Defaults to time of the request. Example: '2014-12-10T23:59:59-05:00'.
+            app_id (string): (Optional) String App API identifier retrieved from **Settings > Setup and Testing > API Keys** to limit analytics to a specific app. Example: '{{app_identifier}}'.
+            segment_id (string): (Optional) String See [Segment API identifier]( Segment ID indicating the analytics-enabled segment for which event analytics should be returned. Example: '{{segment_identifier}}'.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Export, Custom Events
+            Export > Custom Events
         """
         url = f"{self.base_url}/events/data_series"
         query_params = {k: v for k, v in [('event', event), ('length', length), ('unit', unit), ('ending_at', ending_at), ('app_id', app_id), ('segment_id', segment_id)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def daily_new_users_by_date(self, length=None, ending_at=None, app_id=None) -> Any:
+    def list_new_user_kpi_series(self, length: Optional[int] = None, ending_at: Optional[str] = None, app_id: Optional[str] = None) -> dict[str, Any]:
         """
-        Retrieves a data series for new users using the "GET" method, filtered by the specified length, ending date, and app ID.
+        Export Daily New Users by Date
 
         Args:
-            length (string): (Required) Integer Max number of days before ending_at to include in the returned series - must be between 1 and 100 inclusive Example: '14'.
-            ending_at (string): (Optional) DateTime (ISO 8601 string) Point in time when the data series should end - defaults to time of the request Example: '2018-06-28T23:59:59-5:00'.
-            app_id (string): (Optional) String App API identifier; if excluded, results for all apps in app group will be returned Example: '{{app_identifier}}'.
+            length (integer): (Required) Integer Maximum number of days before `ending_at` to include in the returned series. Must be between 1 and 100 (inclusive). Example: '14'.
+            ending_at (string): (Optional) Datetime ([ISO 8601]( string) Date on which the data series should end. Defaults to time of the request. Example: '2018-06-28T23:59:59-5:00'.
+            app_id (string): (Optional) String App API identifier retrieved from **Settings > Setup and Testing > API Keys**. If excluded, results for all apps in workspace will be returned. Example: '{{app_identifier}}'.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Export, KPI
+            Export > KPI
         """
         url = f"{self.base_url}/kpi/new_users/data_series"
         query_params = {k: v for k, v in [('length', length), ('ending_at', ending_at), ('app_id', app_id)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def daily_active_users_by_date(self, length=None, ending_at=None, app_id=None) -> Any:
+    def get_daily_active_users_series(self, length: Optional[int] = None, ending_at: Optional[str] = None, app_id: Optional[str] = None) -> dict[str, Any]:
         """
-        Retrieves a data series for daily active users (DAU) based on specified parameters such as length, ending date, and application ID.
+        Export Daily Active Users by Date
 
         Args:
-            length (string): (Required) Integer Max number of days before ending_at to include in the returned series - must be between 1 and 100 inclusive Example: '10'.
-            ending_at (string): (Optional) DateTime (ISO 8601 string) Point in time when the data series should end - defaults to time of the request Example: '2018-06-28T23:59:59-5:00'.
-            app_id (string): (Optional) String App API identifier; if excluded, results for all apps in app group will be returned Example: '{{app_identifier}}'.
+            length (integer): (Required) Integer Maximum number of days before `ending_at` to include in the returned series. Must be between 1 and 100 (inclusive). Example: '10'.
+            ending_at (string): (Optional) Datetime ([ISO 8601]( string)
+        Date on which the data series should end. Defaults to time of the request. Example: '2018-06-28T23:59:59-5:00'.
+            app_id (string): (Optional) String App API identifier retrieved from **Settings > Setup and Testing > API Keys**. If excluded, results for all apps in workspace will be returned. Example: '{{app_identifier}}'.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Export, KPI
+            Export > KPI
         """
         url = f"{self.base_url}/kpi/dau/data_series"
         query_params = {k: v for k, v in [('length', length), ('ending_at', ending_at), ('app_id', app_id)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def monthly_active_users_for_last30_days(self, length=None, ending_at=None, app_id=None) -> Any:
+    def get_kpimau_data_series(self, length: Optional[int] = None, ending_at: Optional[str] = None, app_id: Optional[str] = None) -> dict[str, Any]:
         """
-        Retrieves a data series for monthly active users (MAU) using the "GET" method at "/kpi/mau/data_series," allowing customization with parameters for series length, end date, and application ID.
+        Export Monthly Active Users for Last 30 Days
 
         Args:
-            length (string): (Required) Integer Max number of days before ending_at to include in the returned series - must be between 1 and 100 inclusive Example: '7'.
-            ending_at (string): (Optional) DateTime (ISO 8601 string) Point in time when the data series should end - defaults to time of the request Example: '2018-06-28T23:59:59-05:00'.
-            app_id (string): (Optional) String App API identifier; if excluded, results for all apps in app group will be returned Example: '{{app_identifier}}'.
+            length (integer): (Required) Integer Maximum number of days before `ending_at` to include in the returned series. Must be between 1 and 100 (inclusive). Example: '7'.
+            ending_at (string): (Optional) Datetime ([ISO 8601]( string) Date on which the data series should end. Defaults to time of the request. Example: '2018-06-28T23:59:59-05:00'.
+            app_id (string): (Optional) String App API identifier retrieved from **Settings > Setup and Testing > API Keys**. If excluded, results for all apps in workspace will be returned. Example: '{{app_identifier}}'.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Export, KPI
+            Export > KPI
         """
         url = f"{self.base_url}/kpi/mau/data_series"
         query_params = {k: v for k, v in [('length', length), ('ending_at', ending_at), ('app_id', app_id)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def kpis_for_daily_app_uninstalls_by_date(self, length=None, ending_at=None, app_id=None) -> Any:
+    def get_kpi_uninstalls_data_series(self, length: Optional[int] = None, ending_at: Optional[str] = None, app_id: Optional[str] = None) -> dict[str, Any]:
         """
-        Retrieves a series of KPI uninstall data over a specified period with configurable length, end date, and app identifier.
+        Export KPIs for Daily App Uninstalls by Date
 
         Args:
-            length (string): (Required) Integer Max number of days before ending_at to include in the returned series - must be between 1 and 100 inclusive Example: '14'.
-            ending_at (string): (Optional) DateTime (ISO 8601 string) Point in time when the data series should end - defaults to time of the request Example: '2018-06-28T23:59:59-5:00'.
-            app_id (string): (Optional) String App API identifier; if excluded, results for all apps in app group will be returned Example: '{{app_identifier}}'.
+            length (integer): (Required) Integer Maximum number of days before `ending_at` to include in the returned series. Must be between 1 and 100 (inclusive). Example: '14'.
+            ending_at (string): (Optional) Datetime ([ISO 8601]( string) Date on which the data series should end. Defaults to time of the request. Example: '2018-06-28T23:59:59-5:00'.
+            app_id (string): (Optional) String App API identifier retrieved from **Settings > Setup and Testing > API Keys**. If excluded, results for all apps in workspace will be returned. Example: '{{app_identifier}}'.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Export, KPI
+            Export > KPI
         """
         url = f"{self.base_url}/kpi/uninstalls/data_series"
         query_params = {k: v for k, v in [('length', length), ('ending_at', ending_at), ('app_id', app_id)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def news_feed_card_analytics(self, card_id=None, length=None, unit=None, ending_at=None) -> Any:
+    def get_feed_data_series(self, card_id: Optional[str] = None, length: Optional[int] = None, unit: Optional[str] = None, ending_at: Optional[str] = None) -> dict[str, Any]:
         """
-        Retrieves a list of data series for a specific card, allowing users to filter by card ID, length, unit, and ending date.
+        Export News Feed Card Analytics
 
         Args:
-            card_id (string): (Required) String Card API identifier Example: '{{card_identifier}}'.
-            length (string): (Required) Integer Max number of units (days or hours) before ending_at to include in the returned series - must be between 1 and 100 inclusive Example: '14'.
-            unit (string): (Optional) String Unit of time between data points - can be "day" or "hour" (defaults to "day") Example: 'day'.
-            ending_at (string): (Optional) DateTime (ISO 8601 string) Date on which the data series should end - defaults to time of the request Example: '2018-06-28T23:59:59-5:00'.
+            card_id (string): (Required) String See [Card API identifier]( The `card_id` for a given card can be found in the **Settings > Setup and Testing > API Keys** page and on the card details page within your dashboard, or you can use the [News Feed List Endpoint]( Example: '{{card_identifier}}'.
+            length (integer): (Required) Integer Max number of units (days or hours) before `ending_at` to include in the returned series. Must be between 1 and 100 (inclusive). Example: '14'.
+            unit (string): (Optional) String Unit of time between data points. Can be `day` or `hour`, defaults to `day`. Example: 'day'.
+            ending_at (string): (Optional) Datetime ([ISO 8601]( string) Date on which the data series should end. Defaults to time of the request. Example: '2018-06-28T23:59:59-5:00'.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Export, News Feed
+            Export > News Feed
         """
         url = f"{self.base_url}/feed/data_series"
         query_params = {k: v for k, v in [('card_id', card_id), ('length', length), ('unit', unit), ('ending_at', ending_at)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def news_feed_cards_details(self, card_id=None) -> Any:
+    def get_feed_details(self, card_id: Optional[str] = None) -> dict[str, Any]:
         """
-        Retrieves detailed information about a specific card based on the provided `card_id` using the "GET" method.
+        Export News Feed Cards Details
 
         Args:
-            card_id (string): (Required) String Card API identifier Example: '{{card_identifier}}'.
+            card_id (string): (Required) String See [Card API identifier]( The `card_id` for a given card can be found in the **Settings > Setup and Testing > API Keys** page and on the card details page within your dashboard, or you can use the [News Feed List Endpoint]( Example: '{{card_identifier}}'.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Export, News Feed
+            Export > News Feed
         """
         url = f"{self.base_url}/feed/details"
         query_params = {k: v for k, v in [('card_id', card_id)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def news_feed_cards_list(self, page=None, include_archived=None, sort_direction=None) -> Any:
+    def list_feed(self, page: Optional[int] = None, include_archived: Optional[bool] = None, sort_direction: Optional[str] = None) -> dict[str, Any]:
         """
-        Retrieves a paginated list of feed items with optional filtering for archived items and sorting direction.
+        Export News Feed Cards List
 
         Args:
-            page (string): (Optional) Integer The page of cards to return, defaults to 0 (returns the first set of up to 100) Example: '1'.
-            include_archived (string): (Optional) Boolean Whether or not to include archived cards, defaults to false Example: 'true'.
-            sort_direction (string): (Optional) String Pass in the value `desc` to sort by creation time from newest to oldest. Pass in `asc` to sort from oldest to newest. If sort_direction is not included, the default order is oldest to newest. Example: 'desc'.
+            page (integer): (Optional) Integer The page of cards to return, defaults to 0 (returns the first set of up to 100). Example: '1'.
+            include_archived (boolean): (Optional) Boolean Whether or not to include archived cards, defaults to false. Example: 'True'.
+            sort_direction (string): (Optional) String - Sort creation time from newest to oldest: pass in the value `desc`.
+        - Sort creation time from oldest to newest: pass in the value `asc`. If `sort_direction` is not included, the default order is oldest to newest. Example: 'desc'.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Export, News Feed
+            Export > News Feed
         """
         url = f"{self.base_url}/feed/list"
         query_params = {k: v for k, v in [('page', page), ('include_archived', include_archived), ('sort_direction', sort_direction)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def segment_list(self, page=None, sort_direction=None) -> Any:
+    def list_products(self, page: Optional[int] = None) -> dict[str, Any]:
         """
-        Retrieves a list of segments, each with details such as name, API identifier, and analytics tracking status, allowing optional pagination and sorting by creation time.
+        Export Product IDs
 
         Args:
-            page (string): (Optional) Integer The page of segments to return, defaults to 0 (returns the first set of up to 100) Example: '1'.
-            sort_direction (string): (Optional) String Pass in the value `desc` to sort by creation time from newest to oldest. Pass in `asc` to sort from oldest to newest. If `sort_direction` is not included, the default order is oldest to newest. Example: 'desc'.
+            page (integer): (Optional) Integer The page of your product list that you would like to view. Example: '1'.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Export, Segment
+            Export > Purchases
+        """
+        url = f"{self.base_url}/purchases/product_list"
+        query_params = {k: v for k, v in [('page', page)] if v is not None}
+        response = self._get(url, params=query_params)
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def get_purchase_quantity_series(self, ending_at: Optional[str] = None, length: Optional[int] = None, unit: Optional[int] = None, app_id: Optional[str] = None, product: Optional[str] = None) -> dict[str, Any]:
+        """
+        Export Number of Purchases
+
+        Args:
+            ending_at (string): (Optional) Datetime (ISO 8601 string)
+        Date on which the data series should end. Defaults to time of the request. Example: '2018-06-28T23:59:59-5:00'.
+            length (integer): (Required) Integer
+        Maximum number of days before ending_at to include in the returned series. Must be between 1 and 100 (inclusive). Example: '100'.
+            unit (integer): (Optional) String
+        Unit of time between data points. Can be `day` or `hour`, defaults to `day`. Example: '14'.
+            app_id (string): (Optional) String
+        App API identifier retrieved from the Settings > Setup and Testing > API Keys to limit analytics to a specific app. Example: '{{app_identifier}}'.
+            product (string): (Optional) String
+        Name of product to filter response by. If excluded, results for all apps will be returned. Example: 'name'.
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Export > Purchases
+        """
+        url = f"{self.base_url}/purchases/quantity_series"
+        query_params = {k: v for k, v in [('ending_at', ending_at), ('length', length), ('unit', unit), ('app_id', app_id), ('product', product)] if v is not None}
+        response = self._get(url, params=query_params)
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def get_purchases_revenue_series(self, ending_at: Optional[str] = None, length: Optional[int] = None, unit: Optional[int] = None, app_id: Optional[str] = None, product: Optional[str] = None) -> dict[str, Any]:
+        """
+        Export Revenue Data by Time
+
+        Args:
+            ending_at (string): (Optional) Datetime (ISO 8601 string)
+        Date on which the data series should end. Defaults to time of the request. Example: '2018-06-28T23:59:59-5:00'.
+            length (integer): (Required) Integer
+        Maximum number of days before ending_at to include in the returned series. Must be between 1 and 100 (inclusive). Example: '100'.
+            unit (integer): (Optional) String
+        Unit of time between data points. Can be `day` or `hour`, defaults to `day`. Example: '14'.
+            app_id (string): (Optional) String
+        App API identifier retrieved from the Settings > Setup and Testing > API Keys to limit analytics to a specific app. Example: '{{app_identifier}}'.
+            product (string): (Optional) String
+        Name of product to filter response by. If excluded, results for all apps will be returned. Example: 'name'.
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Export > Purchases
+        """
+        url = f"{self.base_url}/purchases/revenue_series"
+        query_params = {k: v for k, v in [('ending_at', ending_at), ('length', length), ('unit', unit), ('app_id', app_id), ('product', product)] if v is not None}
+        response = self._get(url, params=query_params)
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def list_segments(self, page: Optional[int] = None, sort_direction: Optional[str] = None) -> dict[str, Any]:
+        """
+        Export Segment List
+
+        Args:
+            page (integer): (Optional) Integer The page of segments to return, defaults to 0 (returns the first set of up to 100). Example: '1'.
+            sort_direction (string): (Optional) String - Sort creation time from newest to oldest: pass in the value `desc`.
+        - Sort creation time from oldest to newest: pass in the value `asc`. If `sort_direction` is not included, the default order is oldest to newest. Example: 'desc'.
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Export > Segment
         """
         url = f"{self.base_url}/segments/list"
         query_params = {k: v for k, v in [('page', page), ('sort_direction', sort_direction)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def segment_analytics(self, segment_id=None, length=None, ending_at=None) -> Any:
+    def get_segments_data_series(self, segment_id: Optional[str] = None, length: Optional[int] = None, ending_at: Optional[str] = None) -> dict[str, Any]:
         """
-        Retrieves a data series for a specified segment based on the segment ID, data length, and ending date using the API endpoint at "/segments/data_series" via the GET method.
+        Export Segment Analytics
 
         Args:
-            segment_id (string): (Required) String Segment API identifier. Example: '{{segment_identifier}}'.
-            length (string): (Required) Integer Max number of days before `ending_at` to include in the returned series - must be between 1 and 100 inclusive. Example: '14'.
-            ending_at (string): (Optional) DateTime (ISO 8601 string) Point in time when the data series should end - defaults to time of the request. Example: '2018-06-27T23:59:59-5:00'.
+            segment_id (string): (Required) String See [Segment API identifier]( The `segment_id` for a given segment can be found in your **Settings > Setup and Testing > API Keys.** within your Braze account or you can use the [Segment List Endpoint]( Example: '{{segment_identifier}}'.
+            length (integer): (Required) Integer Max number of days before `ending_at` to include in the returned series - must be between 1 and 100 (inclusive). Example: '14'.
+            ending_at (string): (Optional) Datetime ([ISO 8601]( string) Date on which the data series should end. Defaults to time of the request. Example: '2018-06-27T23:59:59-5:00'.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Export, Segment
+            Export > Segment
         """
         url = f"{self.base_url}/segments/data_series"
         query_params = {k: v for k, v in [('segment_id', segment_id), ('length', length), ('ending_at', ending_at)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def segment_details(self, segment_id=None) -> Any:
+    def get_segment_details(self, segment_id: Optional[str] = None) -> dict[str, Any]:
         """
-        Retrieves detailed information about a specific segment, identified by its ID, using the GET method at the "/segments/details" endpoint.
+        Export Segment Details
 
         Args:
-            segment_id (string): (Required) String Segment API identifier Example: '{{segment_identifier}}'.
+            segment_id (string): (Required) String See [Segment API identifier]( The `segment_id` for a given segment can be found in your **Settings > Setup and Testing > API Keys** within your Braze account or you can use the [Segment List Endpoint]( Example: '{{segment_identifier}}'.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Export, Segment
+            Export > Segment
         """
         url = f"{self.base_url}/segments/details"
         query_params = {k: v for k, v in [('segment_id', segment_id)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def app_sessions_by_time(self, length=None, unit=None, ending_at=None, app_id=None, segment_id=None) -> Any:
+    def get_sessions_data_series(self, length: Optional[int] = None, unit: Optional[str] = None, ending_at: Optional[str] = None, app_id: Optional[str] = None, segment_id: Optional[str] = None) -> dict[str, Any]:
         """
-        Retrieves data series for sessions using the specified length, unit, ending time, application ID, and segment ID through a GET request to the "/sessions/data_series" endpoint.
+        Export App Sessions by Time
 
         Args:
-            length (string): (Required) Integer Max number of units (days or hours) before ending_at to include in the returned series - must be between 1 and 100 inclusive. Example: '14'.
-            unit (string): (Optional) String Unit of time between data points - can be "day" or "hour" (defaults to "day"). Example: 'day'.
-            ending_at (string): (Optional) DateTime (ISO 8601 string) Point in time when the data series should end - defaults to time of the request. Example: '2018-06-28T23:59:59-5:00'.
-            app_id (string): (Optional) String App API identifier retrieved from the Developer Console to limit analytics to a specific app. Example: '{{app_identifier}}'.
-            segment_id (string): (Optional) String Segment API identifier indicating the analytics enabled segment for which sessions should be returned. Example: '{{segment_identifier}}'.
+            length (integer): (Required) Integer Max number of days before `ending_at` to include in the returned series - must be between 1 and 100 (inclusive). Example: '14'.
+            unit (string): (Optional) String Unit of time between data points. Can be `day` or `hour`, defaults to `day`. Example: 'day'.
+            ending_at (string): (Optional) Datetime (ISO 8601 string) Date on which the data series should end. Defaults to time of the request. Example: '2018-06-28T23:59:59-5:00'.
+            app_id (string): (Optional) String App API identifier retrieved from the **Settings > Setup and Testing > API Keys** to limit analytics to a specific app. Example: '{{app_identifier}}'.
+            segment_id (string): (Required) String See [Segment API identifier]( Segment ID indicating the analytics-enabled segment for which sessions should be returned. Example: '{{segment_identifier}}'.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Export, Session Analytics
+            Export > Session Analytics
         """
         url = f"{self.base_url}/sessions/data_series"
         query_params = {k: v for k, v in [('length', length), ('unit', unit), ('ending_at', ending_at), ('app_id', app_id), ('segment_id', segment_id)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def user_profile_export_by_identifier(self, braze_id=None, device_id=None, email_address=None, external_ids=None, fields_to_export=None, phone=None, user_aliases=None) -> Any:
+    def export_user_ids_by_post(self, external_ids: Optional[List[str]] = None, user_aliases: Optional[List[dict[str, Any]]] = None, device_id: Optional[str] = None, braze_id: Optional[str] = None, email_address: Optional[str] = None, phone: Optional[str] = None, fields_to_export: Optional[List[str]] = None) -> dict[str, Any]:
         """
-        Exports user IDs using a POST request and returns the result upon successful completion.
+        Export User Profile by Identifier
 
         Args:
-            braze_id (string): braze_id Example: 'braze_identifier'.
+            external_ids (array): external_ids Example: ['user_identifier1', 'user_identifier2'].
+            user_aliases (array): user_aliases Example: [{'alias_name': 'example_alias', 'alias_label': 'example_label'}].
             device_id (string): device_id Example: '1234567'.
+            braze_id (string): braze_id Example: 'braze_identifier'.
             email_address (string): email_address Example: 'example@braze.com'.
-            external_ids (array): external_ids Example: "['user_identifier1', 'user_identifier2']".
-            fields_to_export (array): fields_to_export Example: "['first_name', 'email', 'purchases']".
             phone (string): phone Example: '+11112223333'.
-            user_aliases (array): user_aliases
-                Example:
-                ```json
-                {
-                  "braze_id": "braze_identifier",
-                  "device_id": "1234567",
-                  "email_address": "example@braze.com",
-                  "external_ids": [
-                    "user_identifier1",
-                    "user_identifier2"
-                  ],
-                  "fields_to_export": [
-                    "first_name",
-                    "email",
-                    "purchases"
-                  ],
-                  "phone": "+11112223333",
-                  "user_aliases": [
-                    {
-                      "alias_label": "example_label",
-                      "alias_name": "example_alias"
-                    }
-                  ]
-                }
-                ```
+            fields_to_export (array): fields_to_export Example: ['first_name', 'email', 'purchases'].
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Export, Users
+            Export > Users
         """
-        request_body = {
-            'braze_id': braze_id,
-            'device_id': device_id,
-            'email_address': email_address,
+        request_body_data = None
+        request_body_data = {
             'external_ids': external_ids,
-            'fields_to_export': fields_to_export,
-            'phone': phone,
             'user_aliases': user_aliases,
+            'device_id': device_id,
+            'braze_id': braze_id,
+            'email_address': email_address,
+            'phone': phone,
+            'fields_to_export': fields_to_export,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/users/export/ids"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def user_profile_export_by_segment(self, callback_endpoint=None, fields_to_export=None, output_format=None, segment_id=None) -> Any:
+    def export_users_by_segment_post(self, segment_id: Optional[str] = None, callback_endpoint: Optional[str] = None, fields_to_export: Optional[List[str]] = None, output_format: Optional[str] = None) -> dict[str, Any]:
         """
-        Initiates a user segment export process and returns the export status upon successful creation.
+        Export User Profile by Segment
 
         Args:
+            segment_id (string): segment_id Example: 'segment_identifier'.
             callback_endpoint (string): callback_endpoint Example: 'example_endpoint'.
-            fields_to_export (array): fields_to_export Example: "['first_name', 'email', 'purchases']".
+            fields_to_export (array): fields_to_export Example: ['first_name', 'email', 'purchases'].
             output_format (string): output_format Example: 'zip'.
-            segment_id (string): segment_id
-                Example:
-                ```json
-                {
-                  "callback_endpoint": "example_endpoint",
-                  "fields_to_export": [
-                    "first_name",
-                    "email",
-                    "purchases"
-                  ],
-                  "output_format": "zip",
-                  "segment_id": "segment_identifier"
-                }
-                ```
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Export, Users
+            Export > Users
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
+            'segment_id': segment_id,
             'callback_endpoint': callback_endpoint,
             'fields_to_export': fields_to_export,
             'output_format': output_format,
-            'segment_id': segment_id,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/users/export/segment"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def user_profile_export_by_global_control_group(self, callback_endpoint=None, fields_to_export=None, output_format=None) -> Any:
+    def export_global_control_group_users(self, callback_endpoint: Optional[str] = None, fields_to_export: Optional[List[str]] = None, output_format: Optional[str] = None) -> dict[str, Any]:
         """
-        Exports the global control group data for users using the API endpoint at path "/users/export/global_control_group" via the POST method.
+        Export User Profile by Global Control Group
 
         Args:
-            callback_endpoint (string): callback_endpoint
-            fields_to_export (array): fields_to_export Example: "['email', 'braze_id']".
-            output_format (string): output_format
-                Example:
-                ```json
-                {
-                  "callback_endpoint": "",
-                  "fields_to_export": [
-                    "email",
-                    "braze_id"
-                  ],
-                  "output_format": "zip"
-                }
-                ```
+            callback_endpoint (string): callback_endpoint Example: ''.
+            fields_to_export (array): fields_to_export Example: ['email', 'braze_id'].
+            output_format (string): output_format Example: 'zip'.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Export, Users
+            Export > Users
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'callback_endpoint': callback_endpoint,
             'fields_to_export': fields_to_export,
             'output_format': output_format,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/users/export/global_control_group"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def get_upcoming_scheduled_campaigns_and_canvases(self, end_time=None) -> Any:
+    def update_live_activity_message(self, app_id: Optional[str] = None, activity_id: Optional[str] = None, content_state: Optional[dict[str, Any]] = None, end_activity: Optional[bool] = None, dismissal_date: Optional[str] = None, stale_date: Optional[str] = None, notification: Optional[dict[str, Any]] = None) -> dict[str, Any]:
         """
-        Retrieves a list of scheduled broadcasts between the current time and a specified end time using the GET method.
+        Update Live Activity
 
         Args:
-            end_time (string): (Required) String in ISO 8601 format End date of the range to retrieve upcoming scheduled Campaigns and Canvases. This is treated as midnight in UTC time by the API. Example: '2018-09-01T00:00:00-04:00'.
+            app_id (string): app_id Example: '{YOUR-APP-API-IDENTIFIER}'.
+            activity_id (string): activity_id Example: 'live-activity-1'.
+            content_state (object): content_state Example: {'teamOneScore': 2, 'teamTwoScore': 4}.
+            end_activity (boolean): end_activity Example: False.
+            dismissal_date (string): dismissal_date Example: '2023-02-28T00:00:00+0000'.
+            stale_date (string): stale_date Example: '2023-02-27T16:55:49+0000'.
+            notification (object): notification Example: {'alert': {'body': "It's halftime! Let's look at the scores", 'title': 'Halftime'}}.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Messaging, Schedule Mesages
+            Messaging > Live Activities
+        """
+        request_body_data = None
+        request_body_data = {
+            'app_id': app_id,
+            'activity_id': activity_id,
+            'content_state': content_state,
+            'end_activity': end_activity,
+            'dismissal_date': dismissal_date,
+            'stale_date': stale_date,
+            'notification': notification,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/messages/live_activity/update"
+        query_params = {}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def list_scheduled_broadcasts(self, end_time: Optional[str] = None) -> dict[str, Any]:
+        """
+        List Upcoming Scheduled Campaigns and Canvases
+
+        Args:
+            end_time (string): (Required) String in [ISO 8601]( format End date of the range to retrieve upcoming scheduled Campaigns and Canvases. This is treated as midnight in UTC time by the API. Example: '2018-09-01T00:00:00-04:00'.
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Messaging > Schedule Mesages
         """
         url = f"{self.base_url}/messages/scheduled_broadcasts"
         query_params = {k: v for k, v in [('end_time', end_time)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def delete_scheduled_messages(self, schedule_id=None) -> Any:
+    def delete_scheduled_message(self, schedule_id: Optional[str] = None) -> dict[str, Any]:
         """
-        Deletes a scheduled message and returns a status message upon success.
+        Delete Scheduled Messages
 
         Args:
-            schedule_id (string): schedule_id
-                Example:
-                ```json
-                {
-                  "schedule_id": "schedule_identifier"
-                }
-                ```
+            schedule_id (string): schedule_id Example: 'schedule_identifier'.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Messaging, Schedule Mesages
+            Messaging > Schedule Mesages
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'schedule_id': schedule_id,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/messages/schedule/delete"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def delete_scheduled_api_triggered_campaigns(self, campaign_id=None, schedule_id=None) -> Any:
+    def schedule_delete_canvas_trigger(self, canvas_id: Optional[str] = None, schedule_id: Optional[str] = None) -> dict[str, Any]:
         """
-        Deletes scheduled triggers for campaigns using a POST request to the "/campaigns/trigger/schedule/delete" endpoint.
+        Delete Scheduled API-Triggered Canvases
+
+        Args:
+            canvas_id (string): canvas_id Example: 'canvas_identifier'.
+            schedule_id (string): schedule_id Example: 'schedule_identifier'.
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Messaging > Schedule Mesages
+        """
+        request_body_data = None
+        request_body_data = {
+            'canvas_id': canvas_id,
+            'schedule_id': schedule_id,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/canvas/trigger/schedule/delete"
+        query_params = {}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def delete_campaign_schedule(self, campaign_id: Optional[str] = None, schedule_id: Optional[str] = None) -> dict[str, Any]:
+        """
+        Delete Scheduled API Triggered Campaigns
 
         Args:
             campaign_id (string): campaign_id Example: 'campaign_identifier'.
-            schedule_id (string): schedule_id
-                Example:
-                ```json
-                {
-                  "campaign_id": "campaign_identifier",
-                  "schedule_id": "schedule_identifier"
-                }
-                ```
+            schedule_id (string): schedule_id Example: 'schedule_identifier'.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Messaging, Schedule Mesages
+            Messaging > Schedule Mesages
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'campaign_id': campaign_id,
             'schedule_id': schedule_id,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/campaigns/trigger/schedule/delete"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def schedule_api_triggered_campaigns(self, audience=None, broadcast=None, campaign_id=None, recipients=None, schedule=None, send_id=None, trigger_properties=None) -> Any:
+    def create_scheduled_message(self, broadcast: Optional[bool] = None, external_user_ids: Optional[str] = None, user_aliases: Optional[dict[str, Any]] = None, segment_id: Optional[str] = None, audience: Optional[dict[str, Any]] = None, campaign_id: Optional[str] = None, send_id: Optional[str] = None, override_messaging_limits: Optional[bool] = None, recipient_subscription_state: Optional[str] = None, schedule: Optional[dict[str, Any]] = None, messages: Optional[dict[str, Any]] = None) -> dict[str, Any]:
         """
-        Creates and schedules a triggered campaign action, returning a success status upon completion.
+        Create Scheduled Messages
 
         Args:
-            audience (object): audience
-            broadcast (boolean): broadcast Example: 'False'.
+            broadcast (boolean): broadcast Example: False.
+            external_user_ids (string): external_user_ids Example: 'external_user_identifiers'.
+            user_aliases (object): user_aliases Example: {'alias_name': 'example_name', 'alias_label': 'example_label'}.
+            segment_id (string): segment_id Example: 'segment_identifiers'.
+            audience (object): audience Example: {'AND': [{'custom_attribute': {'custom_attribute_name': 'eye_color', 'comparison': 'equals', 'value': 'blue'}}, {'custom_attribute': {'custom_attribute_name': 'favorite_foods', 'comparison': 'includes_value', 'value': 'pizza'}}, {'OR': [{'custom_attribute': {'custom_attribute_name': 'last_purchase_time', 'comparison': 'less_than_x_days_ago', 'value': 2}}, {'push_subscription_status': {'comparison': 'is', 'value': 'opted_in'}}]}, {'email_subscription_status': {'comparison': 'is_not', 'value': 'subscribed'}}, {'last_used_app': {'comparison': 'after', 'value': '2019-07-22T13:17:55+0000'}}]}.
             campaign_id (string): campaign_id Example: 'campaign_identifier'.
-            recipients (array): recipients Example: "[{'canvas_entry_properties': {}, 'external_user_id': 'external_user_identifier', 'trigger_properties': {}, 'user_alias': 'example_alias'}]".
-            schedule (object): schedule
             send_id (string): send_id Example: 'send_identifier'.
-            trigger_properties (object): trigger_properties
-                Example:
-                ```json
-                {
-                  "audience": {
-                    "AND": [
-                      {
-                        "custom_attribute": {
-                          "comparison": "equals",
-                          "custom_attribute_name": "eye_color",
-                          "value": "blue"
-                        }
-                      },
-                      {
-                        "custom_attribute": {
-                          "comparison": "includes_value",
-                          "custom_attribute_name": "favorite_foods",
-                          "value": "pizza"
-                        }
-                      },
-                      {
-                        "OR": [
-                          {
-                            "custom_attribute": {
-                              "comparison": "less_than_x_days_ago",
-                              "custom_attribute_name": "last_purchase_time",
-                              "value": 2
-                            }
-                          },
-                          {
-                            "push_subscription_status": {
-                              "comparison": "is",
-                              "value": "opted_in"
-                            }
-                          }
-                        ]
-                      },
-                      {
-                        "email_subscription_status": {
-                          "comparison": "is_not",
-                          "value": "subscribed"
-                        }
-                      },
-                      {
-                        "last_used_app": {
-                          "comparison": "after",
-                          "value": "2019-07-22T13:17:55+0000"
-                        }
-                      }
-                    ]
-                  },
-                  "broadcast": false,
-                  "campaign_id": "campaign_identifier",
-                  "recipients": [
-                    {
-                      "canvas_entry_properties": {},
-                      "external_user_id": "external_user_identifier",
-                      "trigger_properties": {},
-                      "user_alias": "example_alias"
-                    }
-                  ],
-                  "schedule": {
-                    "at_optimal_time": false,
-                    "in_local_time": false,
-                    "time": ""
-                  },
-                  "send_id": "send_identifier",
-                  "trigger_properties": {}
-                }
-                ```
+            override_messaging_limits (boolean): override_messaging_limits Example: False.
+            recipient_subscription_state (string): recipient_subscription_state Example: 'subscribed'.
+            schedule (object): schedule Example: {'time': '', 'in_local_time': True, 'at_optimal_time': True}.
+            messages (object): messages Example: {'apple_push': {}, 'android_push': {}, 'windows_push': {}, 'windows8_push': {}, 'kindle_push': {}, 'web_push': {}, 'email': {}, 'webhook': {}, 'content_card': {}}.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Messaging, Schedule Mesages
+            Messaging > Schedule Mesages
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
+            'broadcast': broadcast,
+            'external_user_ids': external_user_ids,
+            'user_aliases': user_aliases,
+            'segment_id': segment_id,
+            'audience': audience,
+            'campaign_id': campaign_id,
+            'send_id': send_id,
+            'override_messaging_limits': override_messaging_limits,
+            'recipient_subscription_state': recipient_subscription_state,
+            'schedule': schedule,
+            'messages': messages,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/messages/schedule/create"
+        query_params = {}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def create_schedule(self, campaign_id: Optional[str] = None, send_id: Optional[str] = None, recipients: Optional[List[dict[str, Any]]] = None, audience: Optional[dict[str, Any]] = None, broadcast: Optional[bool] = None, trigger_properties: Optional[dict[str, Any]] = None, schedule: Optional[dict[str, Any]] = None) -> dict[str, Any]:
+        """
+        Schedule API Triggered Campaigns
+
+        Args:
+            campaign_id (string): campaign_id Example: 'campaign_identifier'.
+            send_id (string): send_id Example: 'send_identifier'.
+            recipients (array): recipients Example: [{'user_alias': 'example_alias', 'external_user_id': 'external_user_identifier', 'trigger_properties': {}}].
+            audience (object): audience Example: {'AND': [{'custom_attribute': {'custom_attribute_name': 'eye_color', 'comparison': 'equals', 'value': 'blue'}}, {'custom_attribute': {'custom_attribute_name': 'favorite_foods', 'comparison': 'includes_value', 'value': 'pizza'}}, {'OR': [{'custom_attribute': {'custom_attribute_name': 'last_purchase_time', 'comparison': 'less_than_x_days_ago', 'value': 2}}, {'push_subscription_status': {'comparison': 'is', 'value': 'opted_in'}}]}, {'email_subscription_status': {'comparison': 'is_not', 'value': 'subscribed'}}, {'last_used_app': {'comparison': 'after', 'value': '2019-07-22T13:17:55+0000'}}]}.
+            broadcast (boolean): broadcast Example: False.
+            trigger_properties (object): trigger_properties Example: {}.
+            schedule (object): schedule Example: {'time': '', 'in_local_time': False, 'at_optimal_time': False}.
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Messaging > Schedule Mesages
+        """
+        request_body_data = None
+        request_body_data = {
+            'campaign_id': campaign_id,
+            'send_id': send_id,
+            'recipients': recipients,
             'audience': audience,
             'broadcast': broadcast,
-            'campaign_id': campaign_id,
-            'recipients': recipients,
-            'schedule': schedule,
-            'send_id': send_id,
             'trigger_properties': trigger_properties,
+            'schedule': schedule,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/campaigns/trigger/schedule/create"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def schedule_api_triggered_canvases(self, audience=None, broadcast=None, canvas_entry_properties=None, canvas_id=None, recipients=None, schedule=None) -> Any:
+    def create_schedule_trigger(self, canvas_id: Optional[str] = None, recipients: Optional[List[dict[str, Any]]] = None, audience: Optional[dict[str, Any]] = None, broadcast: Optional[bool] = None, canvas_entry_properties: Optional[dict[str, Any]] = None, schedule: Optional[dict[str, Any]] = None) -> dict[str, Any]:
         """
-        Schedules API-triggered Canvas messages for delivery based on specified actions.
+        Schedule API Triggered Canvases
 
         Args:
-            audience (object): audience
-            broadcast (boolean): broadcast Example: 'False'.
-            canvas_entry_properties (object): canvas_entry_properties
             canvas_id (string): canvas_id Example: 'canvas_identifier'.
-            recipients (array): recipients Example: "[{'canvas_entry_properties': {}, 'external_user_id': 'external_user_identifier', 'trigger_properties': '', 'user_alias': 'example_alias'}]".
-            schedule (object): schedule
-                Example:
-                ```json
-                {
-                  "audience": {
-                    "AND": [
-                      {
-                        "custom_attribute": {
-                          "comparison": "equals",
-                          "custom_attribute_name": "eye_color",
-                          "value": "blue"
-                        }
-                      },
-                      {
-                        "custom_attribute": {
-                          "comparison": "includes_value",
-                          "custom_attribute_name": "favorite_foods",
-                          "value": "pizza"
-                        }
-                      },
-                      {
-                        "OR": [
-                          {
-                            "custom_attribute": {
-                              "comparison": "less_than_x_days_ago",
-                              "custom_attribute_name": "last_purchase_time",
-                              "value": 2
-                            }
-                          },
-                          {
-                            "push_subscription_status": {
-                              "comparison": "is",
-                              "value": "opted_in"
-                            }
-                          }
-                        ]
-                      },
-                      {
-                        "email_subscription_status": {
-                          "comparison": "is_not",
-                          "value": "subscribed"
-                        }
-                      },
-                      {
-                        "last_used_app": {
-                          "comparison": "after",
-                          "value": "2019-07-22T13:17:55+0000"
-                        }
-                      }
-                    ]
-                  },
-                  "broadcast": false,
-                  "canvas_entry_properties": {},
-                  "canvas_id": "canvas_identifier",
-                  "recipients": [
-                    {
-                      "canvas_entry_properties": {},
-                      "external_user_id": "external_user_identifier",
-                      "trigger_properties": "",
-                      "user_alias": "example_alias"
-                    }
-                  ],
-                  "schedule": {
-                    "at_optimal_time": false,
-                    "in_local_time": false,
-                    "time": ""
-                  }
-                }
-                ```
+            recipients (array): recipients Example: [{'user_alias': 'example_alias', 'external_user_id': 'external_user_identifier', 'trigger_properties': {}, 'canvas_entry_properties': {}}].
+            audience (object): audience Example: {'AND': [{'custom_attribute': {'custom_attribute_name': 'eye_color', 'comparison': 'equals', 'value': 'blue'}}, {'custom_attribute': {'custom_attribute_name': 'favorite_foods', 'comparison': 'includes_value', 'value': 'pizza'}}, {'OR': [{'custom_attribute': {'custom_attribute_name': 'last_purchase_time', 'comparison': 'less_than_x_days_ago', 'value': 2}}, {'push_subscription_status': {'comparison': 'is', 'value': 'opted_in'}}]}, {'email_subscription_status': {'comparison': 'is_not', 'value': 'subscribed'}}, {'last_used_app': {'comparison': 'after', 'value': '2019-07-22T13:17:55+0000'}}]}.
+            broadcast (boolean): broadcast Example: False.
+            canvas_entry_properties (object): canvas_entry_properties Example: {}.
+            schedule (object): schedule Example: {'time': '', 'in_local_time': False, 'at_optimal_time': False}.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Messaging, Schedule Mesages
+            Messaging > Schedule Mesages
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
+            'canvas_id': canvas_id,
+            'recipients': recipients,
             'audience': audience,
             'broadcast': broadcast,
             'canvas_entry_properties': canvas_entry_properties,
-            'canvas_id': canvas_id,
-            'recipients': recipients,
             'schedule': schedule,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/canvas/trigger/schedule/create"
-        query_params = {k: v for k, v in [('', )] if v is not None}
-        response = self._post(url, data=request_body, params=query_params)
+        query_params = {}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def update_scheduled_messages(self, messages=None, schedule=None, schedule_id=None) -> Any:
+    def schedule_message_update(self, schedule_id: Optional[str] = None, schedule: Optional[dict[str, Any]] = None, messages: Optional[dict[str, Any]] = None) -> dict[str, Any]:
         """
-        Updates a scheduled message and returns a success status upon completion.
+        Update Scheduled Messages
 
         Args:
-            messages (object): messages
-            schedule (object): schedule
-            schedule_id (string): schedule_id
-                Example:
-                ```json
-                {
-                  "messages": {
-                    "android_push": {
-                      "alert": "Updated message!",
-                      "title": "Updated title!"
-                    },
-                    "apple_push": {
-                      "alert": "Updated Message!",
-                      "badge": 1
-                    },
-                    "sms": {
-                      "app_id": "app_identifier",
-                      "body": "This is my SMS body.",
-                      "message_variation_id": "message_variation_identifier",
-                      "subscription_group_id": "subscription_group_identifier"
-                    }
-                  },
-                  "schedule": {
-                    "time": "2017-05-24T20:30:36Z"
-                  },
-                  "schedule_id": "schedule_identifier"
-                }
-                ```
+            schedule_id (string): schedule_id Example: 'schedule_identifier'.
+            schedule (object): schedule Example: {'time': '2017-05-24T20:30:36Z'}.
+            messages (object): messages Example: {'apple_push': {'alert': 'Updated Message!', 'badge': 1}, 'android_push': {'title': 'Updated title!', 'alert': 'Updated message!'}, 'sms': {'subscription_group_id': 'subscription_group_identifier', 'message_variation_id': 'message_variation_identifier', 'body': 'This is my SMS body.', 'app_id': 'app_identifier'}}.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Messaging, Schedule Mesages
+            Messaging > Schedule Mesages
         """
-        request_body = {
-            'messages': messages,
-            'schedule': schedule,
+        request_body_data = None
+        request_body_data = {
             'schedule_id': schedule_id,
+            'schedule': schedule,
+            'messages': messages,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/messages/schedule/update"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def update_scheduled_api_triggered_campaigns(self, campaign_id=None, schedule=None, schedule_id=None) -> Any:
+    def update_campaign_trigger_schedule(self, campaign_id: Optional[str] = None, schedule_id: Optional[str] = None, schedule: Optional[dict[str, Any]] = None) -> dict[str, Any]:
         """
-        Updates the schedule of a campaign trigger using the POST method and returns a status message.
+        Update Scheduled API Triggered Campaigns
 
         Args:
             campaign_id (string): campaign_id Example: 'campaign_identifier'.
-            schedule (object): schedule
-            schedule_id (string): schedule_id
-                Example:
-                ```json
-                {
-                  "campaign_id": "campaign_identifier",
-                  "schedule": {
-                    "in_local_time": true,
-                    "time": "2017-05-24T21:30:00Z"
-                  },
-                  "schedule_id": "schedule_identifier"
-                }
-                ```
+            schedule_id (string): schedule_id Example: 'schedule_identifier'.
+            schedule (object): schedule Example: {'time': '2017-05-24T21:30:00Z', 'in_local_time': True}.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Messaging, Schedule Mesages
+            Messaging > Schedule Mesages
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'campaign_id': campaign_id,
-            'schedule': schedule,
             'schedule_id': schedule_id,
+            'schedule': schedule,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/campaigns/trigger/schedule/update"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def update_scheduled_api_triggered_canvases(self, canvas_id=None, schedule=None, schedule_id=None) -> Any:
+    def update_canvas_trigger_schedule(self, canvas_id: Optional[str] = None, schedule_id: Optional[str] = None, schedule: Optional[dict[str, Any]] = None) -> dict[str, Any]:
         """
-        Updates a scheduled Canvas trigger's configuration using a POST request and returns a success status upon completion.
+        Update Scheduled API Triggered Canvases
 
         Args:
             canvas_id (string): canvas_id Example: 'canvas_identifier'.
-            schedule (object): schedule
-            schedule_id (string): schedule_id
-                Example:
-                ```json
-                {
-                  "canvas_id": "canvas_identifier",
-                  "schedule": {
-                    "in_local_time": true,
-                    "time": "2017-05-24T21:30:00Z"
-                  },
-                  "schedule_id": "schedule_identifier"
-                }
-                ```
+            schedule_id (string): schedule_id Example: 'schedule_identifier'.
+            schedule (object): schedule Example: {'time': '2017-05-24T21:30:00Z', 'in_local_time': True}.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Messaging, Schedule Mesages
+            Messaging > Schedule Mesages
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'canvas_id': canvas_id,
-            'schedule': schedule,
             'schedule_id': schedule_id,
+            'schedule': schedule,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/canvas/trigger/schedule/update"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def create_send_ids_for_message_send_tracking(self, campaign_id=None, send_id=None) -> Any:
+    def create_send_by_id(self, campaign_id: Optional[str] = None, send_id: Optional[str] = None) -> dict[str, Any]:
         """
-        Creates a new send operation with the specified ID and returns a success status upon completion.
+        Create Send IDs For Message Send Tracking
 
         Args:
             campaign_id (string): campaign_id Example: 'campaign_identifier'.
-            send_id (string): send_id
-                Example:
-                ```json
-                {
-                  "campaign_id": "campaign_identifier",
-                  "send_id": "send_identifier"
-                }
-                ```
+            send_id (string): send_id Example: 'send_identifier'.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Messaging, Send Messages
+            Messaging > Send Messages
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'campaign_id': campaign_id,
             'send_id': send_id,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/sends/id/create"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def sending_campaign_messages_via_api_triggered_delivery(self, audience=None, broadcast=None, campaign_id=None, recipients=None, send_id=None, trigger_properties=None) -> Any:
+    def send_message(self, broadcast: Optional[str] = None, external_user_ids: Optional[str] = None, user_aliases: Optional[dict[str, Any]] = None, segment_id: Optional[str] = None, audience: Optional[dict[str, Any]] = None, campaign_id: Optional[str] = None, send_id: Optional[str] = None, override_frequency_capping: Optional[str] = None, recipient_subscription_state: Optional[str] = None, messages: Optional[dict[str, Any]] = None) -> dict[str, Any]:
         """
-        Triggers a campaign send operation using a POST request to the "/campaigns/trigger/send" endpoint and returns a successful response upon completion.
+        Send Messages Immediately via API Only
 
         Args:
-            audience (object): audience
-            broadcast (boolean): broadcast Example: 'False'.
+            broadcast (string): broadcast Example: 'false'.
+            external_user_ids (string): external_user_ids Example: 'external_user_identifiers'.
+            user_aliases (object): user_aliases Example: {'alias_name': 'example_name', 'alias_label': 'example_label'}.
+            segment_id (string): segment_id Example: 'segment_identifier'.
+            audience (object): audience Example: {'AND': [{'custom_attribute': {'custom_attribute_name': 'eye_color', 'comparison': 'equals', 'value': 'blue'}}, {'custom_attribute': {'custom_attribute_name': 'favorite_foods', 'comparison': 'includes_value', 'value': 'pizza'}}, {'OR': [{'custom_attribute': {'custom_attribute_name': 'last_purchase_time', 'comparison': 'less_than_x_days_ago', 'value': 2}}, {'push_subscription_status': {'comparison': 'is', 'value': 'opted_in'}}]}, {'email_subscription_status': {'comparison': 'is_not', 'value': 'subscribed'}}, {'last_used_app': {'comparison': 'after', 'value': '2019-07-22T13:17:55+0000'}}]}.
             campaign_id (string): campaign_id Example: 'campaign_identifier'.
-            recipients (object): recipients
             send_id (string): send_id Example: 'send_identifier'.
-            trigger_properties (string): trigger_properties
-                Example:
-                ```json
-                {
-                  "audience": {
-                    "AND": [
-                      {
-                        "custom_attribute": {
-                          "comparison": "equals",
-                          "custom_attribute_name": "eye_color",
-                          "value": "blue"
-                        }
-                      },
-                      {
-                        "custom_attribute": {
-                          "comparison": "includes_value",
-                          "custom_attribute_name": "favorite_foods",
-                          "value": "pizza"
-                        }
-                      },
-                      {
-                        "OR": [
-                          {
-                            "custom_attribute": {
-                              "comparison": "less_than_x_days_ago",
-                              "custom_attribute_name": "last_purchase_time",
-                              "value": 2
-                            }
-                          },
-                          {
-                            "push_subscription_status": {
-                              "comparison": "is",
-                              "value": "opted_in"
-                            }
-                          }
-                        ]
-                      },
-                      {
-                        "email_subscription_status": {
-                          "comparison": "is_not",
-                          "value": "subscribed"
-                        }
-                      },
-                      {
-                        "last_used_app": {
-                          "comparison": "after",
-                          "value": "2019-07-22T13:17:55+0000"
-                        }
-                      }
-                    ]
-                  },
-                  "broadcast": false,
-                  "campaign_id": "campaign_identifier",
-                  "recipients": {
-                    "attributes": "",
-                    "external_user_id": "external_user_identifier",
-                    "send_to_existing_only": true,
-                    "trigger_properties": "",
-                    "user_alias": {
-                      "alias_label": "example_label",
-                      "alias_name": "example_name"
-                    }
-                  },
-                  "send_id": "send_identifier",
-                  "trigger_properties": ""
-                }
-                ```
+            override_frequency_capping (string): override_frequency_capping Example: 'false'.
+            recipient_subscription_state (string): recipient_subscription_state Example: 'all'.
+            messages (object): messages Example: {'android_push': '(optional, Android Push Object)', 'apple_push': '(optional, Apple Push Object)', 'content_card': '(optional, Content Card Object)', 'email': '(optional, Email Object)', 'kindle_push': '(optional, Kindle/FireOS Push Object)', 'web_push': '(optional, Web Push Object)', 'windows_phone8_push': '(optional, Windows Phone 8 Push Object)', 'windows_universal_push': '(optional, Windows Universal Push Object)'}.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Messaging, Send Messages, important
+            Messaging > Send Messages
         """
-        request_body = {
-            'audience': audience,
+        request_body_data = None
+        request_body_data = {
             'broadcast': broadcast,
+            'external_user_ids': external_user_ids,
+            'user_aliases': user_aliases,
+            'segment_id': segment_id,
+            'audience': audience,
             'campaign_id': campaign_id,
-            'recipients': recipients,
+            'send_id': send_id,
+            'override_frequency_capping': override_frequency_capping,
+            'recipient_subscription_state': recipient_subscription_state,
+            'messages': messages,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/messages/send"
+        query_params = {}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def send_campaign_transactional(self, campaign_id: str, external_send_id: Optional[str] = None, trigger_properties: Optional[dict[str, Any]] = None, recipient: Optional[List[dict[str, Any]]] = None) -> dict[str, Any]:
+        """
+        Send Transactional Email via API Triggered Delivery
+
+        Args:
+            campaign_id (string): campaign_id
+            external_send_id (string): external_send_id Example: 'YOUR_BASE64_COMPATIBLE_ID'.
+            trigger_properties (object): trigger_properties Example: {'example_string_property': 'YOUR_EXAMPLE_STRING', 'example_integer_property': 'YOUR_EXAMPLE_INTEGER'}.
+            recipient (array): recipient Example: [{'external_user_id': 'TARGETED_USER_ID_STRING'}].
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Messaging > Send Messages
+        """
+        if campaign_id is None:
+            raise ValueError("Missing required parameter 'campaign_id'.")
+        request_body_data = None
+        request_body_data = {
+            'external_send_id': external_send_id,
+            'trigger_properties': trigger_properties,
+            'recipient': recipient,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/transactional/v1/campaigns/{campaign_id}/send"
+        query_params = {}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def send_campaign_trigger(self, campaign_id: Optional[str] = None, send_id: Optional[str] = None, trigger_properties: Optional[dict[str, Any]] = None, broadcast: Optional[bool] = None, audience: Optional[dict[str, Any]] = None, recipients: Optional[List[dict[str, Any]]] = None) -> dict[str, Any]:
+        """
+        Send Campaign Messages via API Triggered Delivery
+
+        Args:
+            campaign_id (string): campaign_id Example: 'campaign_identifier'.
+            send_id (string): send_id Example: 'send_identifier'.
+            trigger_properties (object): trigger_properties Example: {}.
+            broadcast (boolean): broadcast Example: False.
+            audience (object): audience Example: {'AND': [{'custom_attribute': {'custom_attribute_name': 'eye_color', 'comparison': 'equals', 'value': 'blue'}}, {'custom_attribute': {'custom_attribute_name': 'favorite_foods', 'comparison': 'includes_value', 'value': 'pizza'}}, {'OR': [{'custom_attribute': {'custom_attribute_name': 'last_purchase_time', 'comparison': 'less_than_x_days_ago', 'value': 2}}, {'push_subscription_status': {'comparison': 'is', 'value': 'opted_in'}}]}, {'email_subscription_status': {'comparison': 'is_not', 'value': 'subscribed'}}, {'last_used_app': {'comparison': 'after', 'value': '2019-07-22T13:17:55+0000'}}]}.
+            recipients (array): recipients Example: [{'user_alias': {'alias_name': 'example_name', 'alias_label': 'example_label'}, 'external_user_id': 'external_user_identifier', 'trigger_properties': {}, 'send_to_existing_only': True, 'attributes': {'first_name': 'Alex'}}].
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Messaging > Send Messages
+        """
+        request_body_data = None
+        request_body_data = {
+            'campaign_id': campaign_id,
             'send_id': send_id,
             'trigger_properties': trigger_properties,
-        }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
-        url = f"{self.base_url}/campaigns/trigger/send"
-        query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
-        response.raise_for_status()
-        return response.json()
-
-    def sending_canvas_messages_via_api_triggered_delivery(self, audience=None, broadcast=None, canvas_entry_properties=None, canvas_id=None, recipients=None) -> Any:
-        """
-        Sends Canvas messages via API-triggered delivery, allowing users to store message content in the dashboard while specifying recipients and timing through the API.
-
-        Args:
-            audience (object): audience
-            broadcast (boolean): broadcast Example: 'False'.
-            canvas_entry_properties (object): canvas_entry_properties
-            canvas_id (string): canvas_id Example: 'canvas_identifier'.
-            recipients (object): recipients
-                Example:
-                ```json
-                {
-                  "audience": {
-                    "AND": [
-                      {
-                        "custom_attribute": {
-                          "comparison": "equals",
-                          "custom_attribute_name": "eye_color",
-                          "value": "blue"
-                        }
-                      },
-                      {
-                        "custom_attribute": {
-                          "comparison": "includes_value",
-                          "custom_attribute_name": "favorite_foods",
-                          "value": "pizza"
-                        }
-                      },
-                      {
-                        "OR": [
-                          {
-                            "custom_attribute": {
-                              "comparison": "less_than_x_days_ago",
-                              "custom_attribute_name": "last_purchase_time",
-                              "value": 2
-                            }
-                          },
-                          {
-                            "push_subscription_status": {
-                              "comparison": "is",
-                              "value": "opted_in"
-                            }
-                          }
-                        ]
-                      },
-                      {
-                        "email_subscription_status": {
-                          "comparison": "is_not",
-                          "value": "subscribed"
-                        }
-                      },
-                      {
-                        "last_used_app": {
-                          "comparison": "after",
-                          "value": "2019-07-22T13:17:55+0000"
-                        }
-                      }
-                    ]
-                  },
-                  "broadcast": false,
-                  "canvas_entry_properties": {
-                    "product_name": "shoes",
-                    "product_price": 79.99
-                  },
-                  "canvas_id": "canvas_identifier",
-                  "recipients": {
-                    "attributes": {
-                      "first_name": "Alex"
-                    },
-                    "canvas_entry_properties": "",
-                    "external_user_id": "user_identifier",
-                    "send_to_existing_only": true,
-                    "trigger_properties": "",
-                    "user_alias": {
-                      "alias_label": "example_label",
-                      "alias_name": "example_name"
-                    }
-                  }
-                }
-                ```
-
-        Returns:
-            Any: API response data.
-
-        Tags:
-            Messaging, Send Messages
-        """
-        request_body = {
-            'audience': audience,
             'broadcast': broadcast,
-            'canvas_entry_properties': canvas_entry_properties,
-            'canvas_id': canvas_id,
+            'audience': audience,
             'recipients': recipients,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/campaigns/trigger/send"
+        query_params = {}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def send_canvas_trigger_post(self, canvas_id: Optional[str] = None, canvas_entry_properties: Optional[dict[str, Any]] = None, broadcast: Optional[bool] = None, audience: Optional[dict[str, Any]] = None, recipients: Optional[List[dict[str, Any]]] = None) -> dict[str, Any]:
+        """
+        Send Canvas Messages via API Triggered Delivery
+
+        Args:
+            canvas_id (string): canvas_id Example: 'canvas_identifier'.
+            canvas_entry_properties (object): canvas_entry_properties Example: {'product_name': 'shoes', 'product_price': 79.99}.
+            broadcast (boolean): broadcast Example: False.
+            audience (object): audience Example: {'AND': [{'custom_attribute': {'custom_attribute_name': 'eye_color', 'comparison': 'equals', 'value': 'blue'}}, {'custom_attribute': {'custom_attribute_name': 'favorite_foods', 'comparison': 'includes_value', 'value': 'pizza'}}, {'OR': [{'custom_attribute': {'custom_attribute_name': 'last_purchase_time', 'comparison': 'less_than_x_days_ago', 'value': 2}}, {'push_subscription_status': {'comparison': 'is', 'value': 'opted_in'}}]}, {'email_subscription_status': {'comparison': 'is_not', 'value': 'subscribed'}}, {'last_used_app': {'comparison': 'after', 'value': '2019-07-22T13:17:55+0000'}}]}.
+            recipients (array): recipients Example: [{'user_alias': {'alias_name': 'example_name', 'alias_label': 'example_label'}, 'external_user_id': 'user_identifier', 'trigger_properties': {}, 'canvas_entry_properties': '', 'send_to_existing_only': True, 'attributes': {'first_name': 'Alex'}}].
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Messaging > Send Messages
+        """
+        request_body_data = None
+        request_body_data = {
+            'canvas_id': canvas_id,
+            'canvas_entry_properties': canvas_entry_properties,
+            'broadcast': broadcast,
+            'audience': audience,
+            'recipients': recipients,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/canvas/trigger/send"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def list_user_ssubscription_group_status_email(self, subscription_group_id=None, external_id=None, email=None, phone=None) -> Any:
+    def get_preference_center_url_by_user_id(self, PreferenceCenterExternalID: str, UserID: str, preference_center_api_id: Optional[str] = None, external_id: Optional[str] = None) -> dict[str, Any]:
         """
-        Retrieves the subscription status for a user specified by their external_id, email, or phone number within a subscription group.
+        Generate Preference Center URL
+
+        Args:
+            PreferenceCenterExternalID (string): PreferenceCenterExternalID
+            UserID (string): UserID
+            preference_center_api_id (string): Identifies the unique API ID for the preference center resource, used to specify which preference center instance to query. Example: '{{preference_center_api_id}}'.
+            external_id (string): (Required) String Example: '{{external_id}}'.
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Preference Center
+        """
+        if PreferenceCenterExternalID is None:
+            raise ValueError("Missing required parameter 'PreferenceCenterExternalID'.")
+        if UserID is None:
+            raise ValueError("Missing required parameter 'UserID'.")
+        url = f"{self.base_url}/preference_center_v1/{PreferenceCenterExternalID}/url/{UserID}"
+        query_params = {k: v for k, v in [('preference_center_api_id', preference_center_api_id), ('external_id', external_id)] if v is not None}
+        response = self._get(url, params=query_params)
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def list_preferences(self) -> dict[str, Any]:
+        """
+        List Preference Centers
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Preference Center
+        """
+        url = f"{self.base_url}/preference_center/v1/list"
+        query_params = {}
+        response = self._get(url, params=query_params)
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def get_preference_center_by_id(self, PreferenceCenterExternalID: str) -> dict[str, Any]:
+        """
+        View Details for Preference Center
+
+        Args:
+            PreferenceCenterExternalID (string): PreferenceCenterExternalID
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Preference Center
+        """
+        if PreferenceCenterExternalID is None:
+            raise ValueError("Missing required parameter 'PreferenceCenterExternalID'.")
+        url = f"{self.base_url}/preference_center/v1/{PreferenceCenterExternalID}"
+        query_params = {}
+        response = self._get(url, params=query_params)
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def update_preference_center_by_id(self, PreferenceCenterExternalID: str, external_send_id: Optional[str] = None, trigger_properties: Optional[dict[str, Any]] = None, recipient: Optional[List[dict[str, Any]]] = None) -> dict[str, Any]:
+        """
+        Update Preference Center
+
+        Args:
+            PreferenceCenterExternalID (string): PreferenceCenterExternalID
+            external_send_id (string): external_send_id Example: 'YOUR_BASE64_COMPATIBLE_ID'.
+            trigger_properties (object): trigger_properties Example: {'example_string_property': 'YOUR_EXAMPLE_STRING', 'example_integer_property': 'YOUR_EXAMPLE_INTEGER'}.
+            recipient (array): recipient Example: [{'external_user_id': 'TARGETED_USER_ID_STRING'}].
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Preference Center
+        """
+        if PreferenceCenterExternalID is None:
+            raise ValueError("Missing required parameter 'PreferenceCenterExternalID'.")
+        request_body_data = None
+        request_body_data = {
+            'external_send_id': external_send_id,
+            'trigger_properties': trigger_properties,
+            'recipient': recipient,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/preference_center/v1/{PreferenceCenterExternalID}"
+        query_params = {}
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def create_preference_center_entry(self, name: Optional[str] = None, preference_center_title: Optional[str] = None, preference_center_page_html: Optional[str] = None, confirmation_page_html: Optional[str] = None, state: Optional[str] = None, options: Optional[dict[str, Any]] = None) -> dict[str, Any]:
+        """
+        Create Preference Center
+
+        Args:
+            name (string): name Example: 'string'.
+            preference_center_title (string): preference_center_title Example: 'string'.
+            preference_center_page_html (string): preference_center_page_html Example: 'string'.
+            confirmation_page_html (string): confirmation_page_html Example: 'string'.
+            state (string): state Example: 'active'.
+            options (object): options Example: {'meta-viewport-content': 'string'}.
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Preference Center
+        """
+        request_body_data = None
+        request_body_data = {
+            'name': name,
+            'preference_center_title': preference_center_title,
+            'preference_center_page_html': preference_center_page_html,
+            'confirmation_page_html': confirmation_page_html,
+            'state': state,
+            'options': options,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/preference_center/v1"
+        query_params = {}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def delete_user_by_id(self, id: str) -> dict[str, Any]:
+        """
+        Remove Dashboard User Account
+
+        Args:
+            id (string): id
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            SCIM
+        """
+        if id is None:
+            raise ValueError("Missing required parameter 'id'.")
+        url = f"{self.base_url}/scim/v2/Users/{id}"
+        query_params = {}
+        response = self._delete(url, params=query_params)
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def get_user_by_id(self, id: str) -> dict[str, Any]:
+        """
+        Look Up an Existing Dashboard User Account
+
+        Args:
+            id (string): id
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            SCIM
+        """
+        if id is None:
+            raise ValueError("Missing required parameter 'id'.")
+        url = f"{self.base_url}/scim/v2/Users/{id}"
+        query_params = {}
+        response = self._get(url, params=query_params)
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def update_user_by_id(self, id: str, schemas: Optional[List[str]] = None, name: Optional[dict[str, Any]] = None, department: Optional[str] = None, permissions: Optional[dict[str, Any]] = None) -> dict[str, Any]:
+        """
+        Update Dashboard User Account
+
+        Args:
+            id (string): id
+            schemas (array): schemas Example: ['urn:ietf:params:scim:schemas:core:2.0:User'].
+            name (object): name Example: {'givenName': 'Test', 'familyName': 'User'}.
+            department (string): department Example: 'finance'.
+            permissions (object): permissions Example: {'companyPermissions': ['manage_company_settings'], 'appGroup': [{'appGroupName': 'Test App Group', 'appGroupPermissions': ['basic_access', 'send_campaigns_canvases'], 'team': [{'teamName': 'Test Team', 'teamPermissions': ['admin']}]}]}.
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            SCIM
+        """
+        if id is None:
+            raise ValueError("Missing required parameter 'id'.")
+        request_body_data = None
+        request_body_data = {
+            'schemas': schemas,
+            'name': name,
+            'department': department,
+            'permissions': permissions,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/scim/v2/Users/{id}"
+        query_params = {}
+        response = self._put(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def list_users(self, filter: Optional[str] = None) -> dict[str, Any]:
+        """
+        Search Existing Dashboard User by Email
+
+        Args:
+            filter (string): A string parameter used to filter the results of the GET operation by specifying conditions for user attributes, such as `userName`, `externalId`, or name fields. Example: '{userName@example.com}'.
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            SCIM
+        """
+        url = f"{self.base_url}/scim/v2/Users"
+        query_params = {k: v for k, v in [('filter', filter)] if v is not None}
+        response = self._get(url, params=query_params)
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def create_user(self, schemas: Optional[List[str]] = None, userName: Optional[str] = None, name: Optional[dict[str, Any]] = None, department: Optional[str] = None, permissions: Optional[dict[str, Any]] = None) -> dict[str, Any]:
+        """
+        Create New Dashboard User Account
+
+        Args:
+            schemas (array): schemas Example: ['urn:ietf:params:scim:schemas:core:2.0:User'].
+            userName (string): userName Example: 'user@test.com'.
+            name (object): name Example: {'givenName': 'Test', 'familyName': 'User'}.
+            department (string): department Example: 'finance'.
+            permissions (object): permissions Example: {'companyPermissions': ['manage_company_settings'], 'appGroup': [{'appGroupName': 'Test App Group', 'appGroupPermissions': ['basic_access', 'send_campaigns_canvases'], 'team': [{'teamName': 'Test Team', 'teamPermissions': ['basic_access', 'export_user_data']}]}]}.
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            SCIM
+        """
+        request_body_data = None
+        request_body_data = {
+            'schemas': schemas,
+            'userName': userName,
+            'name': name,
+            'department': department,
+            'permissions': permissions,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/scim/v2/Users"
+        query_params = {}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def list_invalid_phone_numbers(self, start_date: Optional[str] = None, end_date: Optional[str] = None, limit: Optional[int] = None, offset: Optional[int] = None, phone_numbers: Optional[int] = None) -> dict[str, Any]:
+        """
+        Query Invalid Phone Numbers
+
+        Args:
+            start_date (string): (Optional*) String in YYYY-MM-DD format Start date of the range to retrieve invalid phone numbers, must be earlier than `end_date`. This is treated as midnight in UTC time by the API. Example: '2018-09-01'.
+            end_date (string): (Optional*) String in YYYY-MM-DD format End date of the range to retrieve invalid phone numbers. This is treated as midnight in UTC time by the API. Example: '2018-09-01'.
+            limit (integer): (Optional) Integer
+        Optional field to limit the number of results returned. Defaults to 100, maximum is 500. Example: '100'.
+            offset (integer): (Optional) Integer
+        Optional beginning point in the list to retrieve from. Example: '1'.
+            phone_numbers (integer): (Optional*) Array of Strings in e.164 format
+        If provided, we will return the phone number if it has been found to be invalid. Example: '12345678901'.
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            SMS
+        """
+        url = f"{self.base_url}/sms/invalid_phone_numbers"
+        query_params = {k: v for k, v in [('start_date', start_date), ('end_date', end_date), ('limit', limit), ('offset', offset), ('phone_numbers', phone_numbers)] if v is not None}
+        response = self._get(url, params=query_params)
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def remove_invalid_phone_numbers(self, phone_numbers: Optional[List[str]] = None) -> dict[str, Any]:
+        """
+        Remove Invalid Phone Numbers
+
+        Args:
+            phone_numbers (array): phone_numbers Example: ['12183095514', '14255551212'].
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            SMS
+        """
+        request_body_data = None
+        request_body_data = {
+            'phone_numbers': phone_numbers,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/sms/invalid_phone_numbers/remove"
+        query_params = {}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def get_subscription_status(self, subscription_group_id: Optional[str] = None, external_id: Optional[str] = None, phone: Optional[str] = None) -> dict[str, Any]:
+        """
+        List User's  Subscription Group Status - SMS
 
         Args:
             subscription_group_id (string): (Required) String The `id` of your subscription group. Example: '{{subscription_group_id}}'.
-            external_id (string): (Required*) String The `external_id` of the user (must include at least one and at most 50 `external_ids`). Only external_id or email is accepted for email subscription groups Example: '{{external_identifier}}'.
-            email (string): (Required* ) String The email address of the user. Can be passed as an array of string with a max of 50. Only external_id or email is accepted for email subscription groups Example: 'example@braze.com'.
-            phone (string): (Required*) String The phone number of the user (must include at least one phone number and at most 50 phone numbers). The recommendation is to provide this in the E.164 format. Only external_id or phone is accepted for SMS subscription groups Example: '+11112223333'.
+            external_id (string): (Required*) String The `external_id` of the user (must include at least one and at most 50 `external_ids`). When both an `external_id` and `phone` are submitted, only the external_id(s) provided will be applied to the result query. Example: '{{external_identifier}}'.
+            phone (string): (Required*) String in [E.164]( format The phone number of the user (must include at least one phone number and at most 50 phone numbers). Example: '+11112223333'.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Subscription Groups, SMS
+            Subscription Groups > SMS and WhatsApp
         """
         url = f"{self.base_url}/subscription/status/get"
-        query_params = {k: v for k, v in [('subscription_group_id', subscription_group_id), ('external_id', external_id), ('email', email), ('phone', phone)] if v is not None}
+        query_params = {k: v for k, v in [('subscription_group_id', subscription_group_id), ('external_id', external_id), ('phone', phone)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def list_user_ssubscription_group_email(self, external_id=None, email=None, limit=None, offset=None, phone=None) -> Any:
+    def get_subscription_user_status(self, external_id: Optional[str] = None, limit: Optional[int] = None, offset: Optional[int] = None, phone: Optional[str] = None) -> dict[str, Any]:
         """
-        Retrieves the subscription status of users by querying identifiers such as external_id, email, or phone, with pagination support via limit and offset parameters.
+        List User's Subscription Group - SMS
 
         Args:
-            external_id (string): (Required) String The external_id of the user. Must include at least one and at most 50 `external_ids`. Example: '{{external_id}}'.
-            email (string): (Required) String The email address of the user. Must include at least one address and at most 50 addresses. Example: 'example@braze.com'.
-            limit (string): (Optional) Integer The limit on the maximum number of results returned. Default (and max) limit is 100. Example: '100'.
-            offset (string): (Optional) Integer Number of templates to skip before returning rest of the templates that fit the search criteria. Example: '1'.
-            phone (string): (Required*) String The phone number of the user (must include at least one phone number and at most 50 phone numbers). The recommendation is to provide this in the E.164 format. Example: '+11112223333'.
+            external_id (string): (Required*) String The `external_id` of the user (must include at least one and at most 50 `external_ids`). Example: '{{external_id}}'.
+            limit (integer): (Optional) Integer The limit on the maximum number of results returned. Default (and max) limit is 100. Example: '100'.
+            offset (integer): (Optional) Integer Number of templates to skip before returning the rest of the templates that fit the search criteria. Example: '1'.
+            phone (string): (Required*) String in [E.164]( format The phone number of the user. Must include at least one phone number (with a max of 50). Example: '+11112223333'.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Subscription Groups, SMS
+            Subscription Groups > SMS and WhatsApp
         """
         url = f"{self.base_url}/subscription/user/status"
-        query_params = {k: v for k, v in [('external_id', external_id), ('email', email), ('limit', limit), ('offset', offset), ('phone', phone)] if v is not None}
+        query_params = {k: v for k, v in [('external_id', external_id), ('limit', limit), ('offset', offset), ('phone', phone)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def update_user_ssubscription_group_status_email(self, external_id=None, phone=None, subscription_group_id=None, subscription_state=None) -> Any:
+    def set_subscription_status(self, subscription_group_id: Optional[str] = None, subscription_state: Optional[str] = None, external_id: Optional[str] = None, phone: Optional[List[str]] = None) -> dict[str, Any]:
         """
-        Updates subscription statuses for up to 50 users in a subscription group via batch processing.
+        Update User's Subscription Group Status - SMS
 
         Args:
-            external_id (string): external_id Example: 'external_identifier'.
-            phone (array): phone Example: "['+12223334444', '+11112223333']".
             subscription_group_id (string): subscription_group_id Example: 'subscription_group_identifier'.
-            subscription_state (string): subscription_state
-                Example:
-                ```json
-                {
-                  "email": [
-                    "example1@email.com",
-                    "example2@email.com"
-                  ],
-                  "external_id": "example-user",
-                  "subscription_group_id": "subscription_group_identifier",
-                  "subscription_state": "unsubscribed"
-                }
-                ```
+            subscription_state (string): subscription_state Example: 'unsubscribed'.
+            external_id (string): external_id Example: 'external_identifier'.
+            phone (array): phone Example: ['+12223334444', '+11112223333'].
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Subscription Groups, SMS
+            Subscription Groups > SMS and WhatsApp
         """
-        request_body = {
-            'external_id': external_id,
-            'phone': phone,
+        request_body_data = None
+        request_body_data = {
             'subscription_group_id': subscription_group_id,
             'subscription_state': subscription_state,
+            'external_id': external_id,
+            'phone': phone,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/subscription/status/set"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def list_available_content_blocks(self, modified_after=None, modified_before=None, limit=None, offset=None) -> Any:
+    def set_subscription_status_post(self, subscription_groups: Optional[List[dict[str, Any]]] = None) -> dict[str, Any]:
         """
-        Retrieves a list of content blocks using the GET method at the "/content_blocks/list" path, allowing filtering by modification dates with parameters like "modified_after" and "modified_before", and pagination control via "limit" and "offset".
+        Update User's Subscription Group Status V2
 
         Args:
-            modified_after (string): (Optional) String in ISO 8601 Retrieve only content blocks updated at or after the given time. Example: '2020-01-01T01:01:01.000000'.
-            modified_before (string): (Optional) String in ISO 8601 Retrieve only content blocks updated at or before the given time. Example: '2020-02-01T01:01:01.000000'.
-            limit (string): (Optional) Positive Number Maximum number of content blocks to retrieve, default to 100 if not provided, maximum acceptable value is 1000. Example: '100'.
-            offset (string): (Optional) Positive Number Number of content blocks to skip before returning rest of the templates that fit the search criteria. Example: '1'.
+            subscription_groups (array): subscription_groups Example: [{'subscription_group_id': 'subscription_group_identifier', 'subscription_state': 'subscribed', 'emails': ['example1@email.com', 'example2@email.com']}].
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Templates, Content Blocks
+            Subscription Groups > SMS and WhatsApp
+        """
+        request_body_data = None
+        request_body_data = {
+            'subscription_groups': subscription_groups,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/v2/subscription/status/set"
+        query_params = {}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def list_content_blocks(self, modified_after: Optional[str] = None, modified_before: Optional[str] = None, limit: Optional[int] = None, offset: Optional[int] = None) -> dict[str, Any]:
+        """
+        List Available Content Blocks
+
+        Args:
+            modified_after (string): (Optional) String in [ISO 8601]( Retrieve only content blocks updated at or after the given time. Example: '2020-01-01T01:01:01.000000'.
+            modified_before (string): (Optional) String in [ISO 8601]( Retrieve only content blocks updated at or before the given time. Example: '2020-02-01T01:01:01.000000'.
+            limit (integer): (Optional) Positive Number Maximum number of content blocks to retrieve. Default to 100 if not provided, with a maximum acceptable value of 1000. Example: '100'.
+            offset (integer): (Optional) Positive Number Number of content blocks to skip before returning rest of the templates that fit the search criteria. Example: '1'.
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            Templates > Content Blocks
         """
         url = f"{self.base_url}/content_blocks/list"
         query_params = {k: v for k, v in [('modified_after', modified_after), ('modified_before', modified_before), ('limit', limit), ('offset', offset)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def see_content_block_information(self, content_block_id=None, include_inclusion_data=None) -> Any:
+    def get_info_content_block(self, content_block_id: Optional[str] = None, include_inclusion_data: Optional[bool] = None) -> dict[str, Any]:
         """
-        Retrieves information about a specified Content Block using its identifier, optionally including data on where it is used in campaigns or Canvases.
+        See Content Block Information
 
         Args:
-            content_block_id (string): (Required) String The Content Block ID. This can be found by either listing Content Block information or going to the Developer Console, then API Settings, then scrolling to the bottom and searching for your Content Block API Identifier. Example: '{{content_block_id}}'.
-            include_inclusion_data (string): (Optional) Boolean When set to ‘true’, the API returns back the Message Variation API ID of Campaigns and Canvases where this content block is included, to be used in subsequent calls. The results exclude archived or deleted Campaigns or Canvases. Example: 'No'.
+            content_block_id (string): (Required) String The content block identifier. You can find this by either listing content block information through an API call or going to **Settings > Setup and Testing > API Keys**, then scrolling to the bottom and searching for your content block API identifier. Example: '{{content_block_id}}'.
+            include_inclusion_data (boolean): (Optional) Boolean When set to `true`, the API returns back the Message Variation API identifier of campaigns and Canvases where this content block is included, to be used in subsequent calls. The results exclude archived or deleted Campaigns or Canvases.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Templates, Content Blocks
+            Templates > Content Blocks
         """
         url = f"{self.base_url}/content_blocks/info"
         query_params = {k: v for k, v in [('content_block_id', content_block_id), ('include_inclusion_data', include_inclusion_data)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def create_content_block(self, content=None, description=None, name=None, state=None, tags=None) -> Any:
+    def create_content_block(self, name: Optional[str] = None, description: Optional[str] = None, content: Optional[str] = None, state: Optional[str] = None, tags: Optional[List[str]] = None) -> dict[str, Any]:
         """
-        Creates a new content block using the provided data and returns a success response upon completion.
+        Create Content Block
 
         Args:
-            content (string): content Example: 'HTML content within block'.
-            description (string): description Example: 'This is my content block'.
             name (string): name Example: 'content_block'.
+            description (string): description Example: 'This is my content block'.
+            content (string): content Example: 'HTML content within block'.
             state (string): state Example: 'draft'.
-            tags (array): tags
-                Example:
-                ```json
-                {
-                  "content": "HTML content within block",
-                  "description": "This is my content block",
-                  "name": "content_block",
-                  "state": "draft",
-                  "tags": [
-                    "marketing"
-                  ]
-                }
-                ```
+            tags (array): tags Example: ['marketing'].
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Templates, Content Blocks
+            Templates > Content Blocks
         """
-        request_body = {
-            'content': content,
-            'description': description,
+        request_body_data = None
+        request_body_data = {
             'name': name,
+            'description': description,
+            'content': content,
             'state': state,
             'tags': tags,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/content_blocks/create"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def update_content_block(self, content=None, content_block_id=None, description=None, name=None, state=None, tags=None) -> Any:
+    def update_content_block(self, content_block_id: Optional[str] = None, name: Optional[str] = None, description: Optional[str] = None, content: Optional[str] = None, state: Optional[str] = None, tags: Optional[List[str]] = None) -> dict[str, Any]:
         """
-        Updates content blocks using a POST request and returns a success status upon completion.
+        Update Content Block
 
         Args:
-            content (string): content Example: 'HTML or text content within block'.
             content_block_id (string): content_block_id Example: 'content_block_id'.
-            description (string): description Example: 'This is my content block'.
             name (string): name Example: 'content_block'.
+            description (string): description Example: 'This is my content block'.
+            content (string): content Example: 'HTML or text content within block'.
             state (string): state Example: 'draft'.
-            tags (array): tags
-                Example:
-                ```json
-                {
-                  "content": "HTML or text content within block",
-                  "content_block_id": "content_block_id",
-                  "description": "This is my content block",
-                  "name": "content_block",
-                  "state": "draft",
-                  "tags": [
-                    "marketing"
-                  ]
-                }
-                ```
+            tags (array): tags Example: ['marketing'].
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Templates, Content Blocks
+            Templates > Content Blocks
         """
-        request_body = {
-            'content': content,
+        request_body_data = None
+        request_body_data = {
             'content_block_id': content_block_id,
-            'description': description,
             'name': name,
+            'description': description,
+            'content': content,
             'state': state,
             'tags': tags,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/content_blocks/update"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def list_available_email_templates(self, modified_after=None, modified_before=None, limit=None, offset=None) -> Any:
+    def list_email_templates(self, modified_after: Optional[str] = None, modified_before: Optional[str] = None, limit: Optional[int] = None, offset: Optional[int] = None) -> dict[str, Any]:
         """
-        Retrieves a list of available email templates with optional filtering by modification time and pagination parameters.
+        List Available Email Templates
 
         Args:
-            modified_after (string): (Optional) String in ISO 8601 Retrieve only templates updated at or after the given time. Example: '2020-01-01T01:01:01.000000'.
-            modified_before (string): (Optional) String in ISO 8601 Retrieve only templates updated at or before the given time Example: '2020-02-01T01:01:01.000000'.
-            limit (string): (Optional) Positive Number Maximum number of templates to retrieve, default to 100 if not provided, maximum acceptable value is 1000. Example: '1'.
-            offset (string): (Optional) Positive Number Number of templates to skip before returning rest of the templates that fit the search criteria. Example: '0'.
+            modified_after (string): (Optional) String in [ISO 8601]( Retrieve only templates updated at or after the given time. Example: '2020-01-01T01:01:01.000000'.
+            modified_before (string): (Optional) String in [ISO 8601]( Retrieve only templates updated at or before the given time. Example: '2020-02-01T01:01:01.000000'.
+            limit (integer): (Optional) Positive Number Maximum number of templates to retrieve. Default to 100 if not provided, with a maximum acceptable value of 1000. Example: '1'.
+            offset (integer): (Optional) Positive Number Number of templates to skip before returning rest of the templates that fit the search criteria.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Templates, Email Templates
+            Templates > Email Templates
         """
         url = f"{self.base_url}/templates/email/list"
         query_params = {k: v for k, v in [('modified_after', modified_after), ('modified_before', modified_before), ('limit', limit), ('offset', offset)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def see_email_template_information(self, email_template_id=None) -> Any:
+    def get_email_template_info(self, email_template_id: Optional[str] = None) -> dict[str, Any]:
         """
-        Retrieves information about a specific email template using the "GET" method at the "/templates/email/info" path, based on the provided `email_template_id` query parameter.
+        See Email Template Information
 
         Args:
-            email_template_id (string): (Required) String Your email template's API Identifier. Example: '{{email_template_id}}'.
+            email_template_id (string): (Required) String See [email template's API identifier]( Example: '{{email_template_id}}'.
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Templates, Email Templates
+            Templates > Email Templates
         """
         url = f"{self.base_url}/templates/email/info"
         query_params = {k: v for k, v in [('email_template_id', email_template_id)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def create_email_template(self, body=None, plaintext_body=None, preheader=None, subject=None, tags=None, template_name=None) -> Any:
+    def create_email_template(self, template_name: Optional[str] = None, subject: Optional[str] = None, body: Optional[str] = None, plaintext_body: Optional[str] = None, preheader: Optional[str] = None, tags: Optional[List[str]] = None) -> dict[str, Any]:
         """
-        Creates a new email template and returns a confirmation upon successful creation.
+        Create Email Template
 
         Args:
+            template_name (string): template_name Example: 'email_template_name'.
+            subject (string): subject Example: 'Welcome to my email template!'.
             body (string): body Example: 'This is the text within my email body and https://www.braze.com/ here is a link to Braze.com.'.
             plaintext_body (string): plaintext_body Example: 'This is the text within my email body and here is a link to https://www.braze.com/.'.
             preheader (string): preheader Example: 'My preheader is pretty cool.'.
-            subject (string): subject Example: 'Welcome to my email template!'.
-            tags (array): tags Example: "['Tag1', 'Tag2']".
-            template_name (string): template_name
-                Example:
-                ```json
-                {
-                  "body": "This is the text within my email body and https://www.braze.com/ here is a link to Braze.com.",
-                  "plaintext_body": "This is the text within my email body and here is a link to https://www.braze.com/.",
-                  "preheader": "My preheader is pretty cool.",
-                  "subject": "Welcome to my email template!",
-                  "tags": [
-                    "Tag1",
-                    "Tag2"
-                  ],
-                  "template_name": "email_template_name"
-                }
-                ```
+            tags (array): tags Example: ['Tag1', 'Tag2'].
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Templates, Email Templates
+            Templates > Email Templates
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
+            'template_name': template_name,
+            'subject': subject,
             'body': body,
             'plaintext_body': plaintext_body,
             'preheader': preheader,
-            'subject': subject,
             'tags': tags,
-            'template_name': template_name,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/templates/email/create"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def update_email_template(self, body=None, email_template_id=None, plaintext_body=None, preheader=None, subject=None, tags=None, template_name=None) -> Any:
+    def rename_external_id(self, external_id_renames: Optional[List[dict[str, Any]]] = None) -> dict[str, Any]:
         """
-        Updates an email template and returns a success status upon completion using a POST request.
+        Rename External ID
 
         Args:
-            body (string): body Example: "Check out this week's digital lookbook to inspire your outfits. Take a look at https://www.braze.com/".
-            email_template_id (string): email_template_id Example: 'email_template_id'.
-            plaintext_body (string): plaintext_body Example: 'This is the updated text within my email body and here is a link to https://www.braze.com/.'.
-            preheader (string): preheader Example: 'We want you to have the best looks this Summer'.
-            subject (string): subject Example: "This Week's Styles".
-            tags (array): tags Example: "['Tag1', 'Tag2']".
-            template_name (string): template_name
-                Example:
-                ```json
-                {
-                  "body": "Check out this week's digital lookbook to inspire your outfits. Take a look at https://www.braze.com/",
-                  "email_template_id": "email_template_id",
-                  "plaintext_body": "This is the updated text within my email body and here is a link to https://www.braze.com/.",
-                  "preheader": "We want you to have the best looks this Summer",
-                  "subject": "This Week's Styles",
-                  "tags": [
-                    "Tag1",
-                    "Tag2"
-                  ],
-                  "template_name": "Weekly Newsletter"
-                }
-                ```
+            external_id_renames (array): external_id_renames Example: [{'current_external_id': 'existing_external_id', 'new_external_id': 'new_external_id'}].
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Templates, Email Templates
+            User Data > External ID Migration
         """
-        request_body = {
-            'body': body,
-            'email_template_id': email_template_id,
-            'plaintext_body': plaintext_body,
-            'preheader': preheader,
-            'subject': subject,
-            'tags': tags,
-            'template_name': template_name,
-        }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
-        url = f"{self.base_url}/templates/email/update"
-        query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
-        response.raise_for_status()
-        return response.json()
-
-    def external_id_remove(self, external_id_renames=None) -> Any:
-        """
-        Removes external user identifiers and returns a successful status response upon completion.
-
-        Args:
-            external_id_renames (array): external_id_renames
-                Example:
-                ```json
-                {
-                  "external_ids": [
-                    "existing_deprecated_external_id_string"
-                  ]
-                }
-                ```
-
-        Returns:
-            Any: API response data.
-
-        Tags:
-            User Data, External ID Migration
-        """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'external_id_renames': external_id_renames,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/users/external_ids/rename"
+        query_params = {}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def remove_external_id(self, external_ids: Optional[List[str]] = None) -> dict[str, Any]:
+        """
+        Remove External ID
+
+        Args:
+            external_ids (array): external_ids Example: ['existing_deprecated_external_id_string'].
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            User Data > External ID Migration
+        """
+        request_body_data = None
+        request_body_data = {
+            'external_ids': external_ids,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/users/external_ids/remove"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def create_new_user_aliases(self, user_aliases=None) -> Any:
+    def update_user_alias(self, alias_updates: Optional[List[dict[str, Any]]] = None) -> dict[str, Any]:
         """
-        Creates a new user alias using the API and returns a status message.
+        Update User Alias
 
         Args:
-            user_aliases (array): user_aliases
-                Example:
-                ```json
-                {
-                  "user_aliases": [
-                    {
-                      "alias_label": "example_label",
-                      "alias_name": "example_name",
-                      "external_id": "external_identifier"
-                    }
-                  ]
-                }
-                ```
+            alias_updates (array): alias_updates Example: [{'alias_label': 'example_alias_label', 'old_alias_name': 'example_old_alias_name', 'new_alias_name': 'example_new_alias_name'}].
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             User Data
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
+            'alias_updates': alias_updates,
+        }
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/users/alias/update"
+        query_params = {}
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
+        response.raise_for_status()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
+
+    def create_user_alias_new(self, user_aliases: Optional[List[dict[str, Any]]] = None) -> dict[str, Any]:
+        """
+        Create New User Aliases
+
+        Args:
+            user_aliases (array): user_aliases Example: [{'external_id': 'external_identifier', 'alias_name': 'example_name', 'alias_label': 'example_label'}].
+
+        Returns:
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
+
+        Tags:
+            User Data
+        """
+        request_body_data = None
+        request_body_data = {
             'user_aliases': user_aliases,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/users/alias/new"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def user_delete(self, braze_ids=None, external_ids=None, user_aliases=None) -> Any:
+    def delete_user(self, external_ids: Optional[List[str]] = None, braze_ids: Optional[List[str]] = None, user_aliases: Optional[List[dict[str, Any]]] = None) -> dict[str, Any]:
         """
-        Deletes a user using the API and returns a status message.
+        Delete Users
 
         Args:
-            braze_ids (array): braze_ids Example: "['braze_identifier1', 'braze_identifier2']".
-            external_ids (array): external_ids Example: "['external_identifier1', 'external_identifier2']".
-            user_aliases (array): user_aliases
-                Example:
-                ```json
-                {
-                  "braze_ids": [
-                    "braze_identifier1",
-                    "braze_identifier2"
-                  ],
-                  "external_ids": [
-                    "external_identifier1",
-                    "external_identifier2"
-                  ],
-                  "user_aliases": [
-                    "user_alias1",
-                    "user_alias2"
-                  ]
-                }
-                ```
+            external_ids (array): external_ids Example: ['external_identifier1', 'external_identifier2'].
+            braze_ids (array): braze_ids Example: ['braze_identifier1', 'braze_identifier2'].
+            user_aliases (array): user_aliases Example: [{'alias_name': 'user_alias1', 'alias_label': 'alias_label1'}, {'alias_name': 'user_alias2', 'alias_label': 'alias_label2'}].
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
             User Data
         """
-        request_body = {
-            'braze_ids': braze_ids,
+        request_body_data = None
+        request_body_data = {
             'external_ids': external_ids,
+            'braze_ids': braze_ids,
             'user_aliases': user_aliases,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/users/delete"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def identify_users(self, aliases_to_identify=None) -> Any:
+    def identify_user(self, aliases_to_identify: Optional[List[dict[str, Any]]] = None) -> dict[str, Any]:
         """
-        Identifies a user and returns a success status upon verification.
+        Identify Users
 
         Args:
-            aliases_to_identify (array): aliases_to_identify
-                Example:
-                ```json
-                {
-                  "aliases_to_identify": [
-                    {
-                      "external_id": "external_identifier",
-                      "user_alias": {
-                        "alias_label": "example_label",
-                        "alias_name": "example_alias"
-                      }
-                    }
-                  ]
-                }
-                ```
+            aliases_to_identify (array): aliases_to_identify Example: [{'external_id': 'external_identifier', 'user_alias': {'alias_name': 'example_alias', 'alias_label': 'example_label'}}].
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            User Data, important
+            User Data
         """
-        request_body = {
+        request_body_data = None
+        request_body_data = {
             'aliases_to_identify': aliases_to_identify,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
         url = f"{self.base_url}/users/identify"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
-    def user_track(self, attributes=None, events=None, purchases=None) -> Any:
+    def merge_users_post(self, merge_updates: Optional[List[dict[str, Any]]] = None) -> dict[str, Any]:
         """
-        Tracks user activity by sending data to the API endpoint at "/users/track" using the POST method.
+        Merge Users
 
         Args:
-            attributes (array): attributes Example: "[{'array_attribute': ['banana', 'apple'], 'boolean_attribute_1': True, 'external_id': 'user_identifier', 'integer_attribute': 25, 'string_attribute': 'fruit'}]".
-            events (array): events Example: "[{'app_id': 'app_identifier', 'external_id': 'user_identifier', 'name': 'watched_trailer', 'time': '2013-07-16T19:20:30+1:00'}]".
-            purchases (array): purchases
-                Example:
-                ```json
-                {
-                  "attributes": [
-                    {
-                      "array_attribute": [
-                        "banana",
-                        "apple"
-                      ],
-                      "boolean_attribute_1": true,
-                      "external_id": "user_identifier",
-                      "integer_attribute": 25,
-                      "string_attribute": "fruit"
-                    }
-                  ],
-                  "events": [
-                    {
-                      "app_id": "app_identifier",
-                      "external_id": "user_identifier",
-                      "name": "watched_trailer",
-                      "time": "2013-07-16T19:20:30+1:00"
-                    }
-                  ],
-                  "purchases": [
-                    {
-                      "app_id": "app_identifier",
-                      "currency": "USD",
-                      "external_id": "user_identifier",
-                      "price": 12.12,
-                      "product_id": "product_name",
-                      "properties": {
-                        "date_property": "2014-02-02T00:00:00Z",
-                        "integer_property": 3,
-                        "string_property": "Russell"
-                      },
-                      "quantity": 6,
-                      "time": "2017-05-12T18:47:12Z"
-                    }
-                  ]
-                }
-                ```
+            merge_updates (array): merge_updates Example: [{'identifier_to_merge': {'external_id': 'old-user1'}, 'identifier_to_keep': {'external_id': 'current-user1'}}, {'identifier_to_merge': {'user_alias': {'alias_name': 'old-user2@example.com', 'alias_label': 'email'}}, 'identifier_to_keep': {'user_alias': {'alias_name': 'current-user2@example.com', 'alias_label': 'email'}}}].
 
         Returns:
-            Any: API response data.
+            dict[str, Any]: Successful response
+
+        Raises:
+            HTTPError: Raised when the API request fails (e.g., non-2XX status code).
+            JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            User Data, important
+            User Data
         """
-        request_body = {
-            'attributes': attributes,
-            'events': events,
-            'purchases': purchases,
+        request_body_data = None
+        request_body_data = {
+            'merge_updates': merge_updates,
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
-        url = f"{self.base_url}/users/track"
+        request_body_data = {k: v for k, v in request_body_data.items() if v is not None}
+        url = f"{self.base_url}/users/merge"
         query_params = {}
-        response = self._post(url, data=request_body, params=query_params)
+        response = self._post(url, data=request_body_data, params=query_params, content_type='application/json')
         response.raise_for_status()
-        return response.json()
+        if response.status_code == 204 or not response.content or not response.text.strip():
+            return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
     def list_tools(self):
         return [
-            self.query_hard_bounced_emails,
-            self.query_list_of_unsubscribed_email_addresses,
-            self.change_email_subscription_status,
-            self.remove_hard_bounced_emails,
-            self.remove_email_addresses_from_spam_list,
-            self.blacklist_email_addresses,
-            self.campaign_analytics,
-            self.campaign_details,
-            self.campaign_list,
-            self.send_analytics,
-            self.canvas_data_series_analytics,
-            self.canvas_data_analytics_summary,
-            self.canvas_details,
-            self.canvas_list,
-            self.custom_events_list,
-            self.custom_events_analytics,
-            self.daily_new_users_by_date,
-            self.daily_active_users_by_date,
-            self.monthly_active_users_for_last30_days,
-            self.kpis_for_daily_app_uninstalls_by_date,
-            self.news_feed_card_analytics,
-            self.news_feed_cards_details,
-            self.news_feed_cards_list,
-            self.segment_list,
-            self.segment_analytics,
-            self.segment_details,
-            self.app_sessions_by_time,
-            self.user_profile_export_by_identifier,
-            self.user_profile_export_by_segment,
-            self.user_profile_export_by_global_control_group,
-            self.get_upcoming_scheduled_campaigns_and_canvases,
-            self.delete_scheduled_messages,
-            self.delete_scheduled_api_triggered_campaigns,
-            self.schedule_api_triggered_campaigns,
-            self.schedule_api_triggered_canvases,
-            self.update_scheduled_messages,
-            self.update_scheduled_api_triggered_campaigns,
-            self.update_scheduled_api_triggered_canvases,
-            self.create_send_ids_for_message_send_tracking,
-            self.sending_campaign_messages_via_api_triggered_delivery,
-            self.sending_canvas_messages_via_api_triggered_delivery,
-            self.list_user_ssubscription_group_status_email,
-            self.list_user_ssubscription_group_email,
-            self.update_user_ssubscription_group_status_email,
-            self.list_available_content_blocks,
-            self.see_content_block_information,
+            self.update_email_template,
+            self.track_user_activity,
+            self.delete_catalog_by_name,
+            self.list_catalogs,
+            self.create_catalog,
+            self.delete_catalog_item,
+            self.edit_catalog_item,
+            self.create_catalog_item,
+            self.update_catalog_items,
+            self.list_catalog_items,
+            self.delete_catalog_item_by_id,
+            self.get_item_detail,
+            self.update_catalog_item_by_id,
+            self.add_catalog_item_by_id,
+            self.update_catalog_item,
+            self.list_hard_bounces,
+            self.list_unsubscribes,
+            self.post_email_status,
+            self.remove_bounced_email,
+            self.remove_email_spam,
+            self.add_email_to_blocklist,
+            self.add_to_blacklist,
+            self.get_campaign_data_series,
+            self.get_campaign_details,
+            self.list_campaigns,
+            self.get_send_data_series,
+            self.get_canvas_data_series,
+            self.fetch_canvas_data_summary,
+            self.get_canvas_details,
+            self.list_canvas,
+            self.list_events,
+            self.fetch_event_series_data,
+            self.list_new_user_kpi_series,
+            self.get_daily_active_users_series,
+            self.get_kpimau_data_series,
+            self.get_kpi_uninstalls_data_series,
+            self.get_feed_data_series,
+            self.get_feed_details,
+            self.list_feed,
+            self.list_products,
+            self.get_purchase_quantity_series,
+            self.get_purchases_revenue_series,
+            self.list_segments,
+            self.get_segments_data_series,
+            self.get_segment_details,
+            self.get_sessions_data_series,
+            self.export_user_ids_by_post,
+            self.export_users_by_segment_post,
+            self.export_global_control_group_users,
+            self.update_live_activity_message,
+            self.list_scheduled_broadcasts,
+            self.delete_scheduled_message,
+            self.schedule_delete_canvas_trigger,
+            self.delete_campaign_schedule,
+            self.create_scheduled_message,
+            self.create_schedule,
+            self.create_schedule_trigger,
+            self.schedule_message_update,
+            self.update_campaign_trigger_schedule,
+            self.update_canvas_trigger_schedule,
+            self.create_send_by_id,
+            self.send_message,
+            self.send_campaign_transactional,
+            self.send_campaign_trigger,
+            self.send_canvas_trigger_post,
+            self.get_preference_center_url_by_user_id,
+            self.list_preferences,
+            self.get_preference_center_by_id,
+            self.update_preference_center_by_id,
+            self.create_preference_center_entry,
+            self.delete_user_by_id,
+            self.get_user_by_id,
+            self.update_user_by_id,
+            self.list_users,
+            self.create_user,
+            self.list_invalid_phone_numbers,
+            self.remove_invalid_phone_numbers,
+            self.get_subscription_status,
+            self.get_subscription_user_status,
+            self.set_subscription_status,
+            self.set_subscription_status_post,
+            self.list_content_blocks,
+            self.get_info_content_block,
             self.create_content_block,
             self.update_content_block,
-            self.list_available_email_templates,
-            self.see_email_template_information,
+            self.list_email_templates,
+            self.get_email_template_info,
             self.create_email_template,
-            self.update_email_template,
-            self.external_id_remove,
-            self.create_new_user_aliases,
-            self.user_delete,
-            self.identify_users,
-            self.user_track
+            self.rename_external_id,
+            self.remove_external_id,
+            self.update_user_alias,
+            self.create_user_alias_new,
+            self.delete_user,
+            self.identify_user,
+            self.merge_users_post
         ]
