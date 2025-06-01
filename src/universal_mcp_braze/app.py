@@ -131,7 +131,7 @@ class BrazeApp(APIApplication):
             JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Catalogs > Catalog Management > Synchronous
+            Catalogs > Catalog Management > Synchronous, important
         """
         url = f"{self.base_url}/catalogs"
         query_params = {}
@@ -159,7 +159,7 @@ class BrazeApp(APIApplication):
             JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Catalogs > Catalog Management > Synchronous
+            Catalogs > Catalog Management > Synchronous, important
         """
         request_body_data = None
         request_body_data = {
@@ -192,7 +192,7 @@ class BrazeApp(APIApplication):
             JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Catalogs > Catalog Items > Asynchronous
+            Catalogs > Catalog Items > Asynchronous, important
         """
         if catalog_name is None:
             raise ValueError("Missing required parameter 'catalog_name'.")
@@ -223,7 +223,7 @@ class BrazeApp(APIApplication):
             JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Catalogs > Catalog Items > Asynchronous
+            Catalogs > Catalog Items > Asynchronous, important
         """
         if catalog_name is None:
             raise ValueError("Missing required parameter 'catalog_name'.")
@@ -1025,7 +1025,7 @@ class BrazeApp(APIApplication):
             JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Export > Custom Events
+            Export > Custom Events, important
         """
         url = f"{self.base_url}/events/list"
         query_params = {k: v for k, v in [('page', page)] if v is not None}
@@ -2553,7 +2553,7 @@ class BrazeApp(APIApplication):
             JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            SCIM
+            SCIM, important
         """
         url = f"{self.base_url}/scim/v2/Users"
         query_params = {k: v for k, v in [('filter', filter)] if v is not None}
@@ -2585,7 +2585,7 @@ class BrazeApp(APIApplication):
             JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            SCIM
+            SCIM, important
         """
         request_body_data = None
         request_body_data = {
@@ -2887,7 +2887,7 @@ class BrazeApp(APIApplication):
             JSONDecodeError: Raised if the response body cannot be parsed as JSON.
 
         Tags:
-            Templates > Content Blocks
+            Templates > Content Blocks, important
         """
         request_body_data = None
         request_body_data = {
